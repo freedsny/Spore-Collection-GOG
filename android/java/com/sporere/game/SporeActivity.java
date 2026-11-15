@@ -106,6 +106,10 @@ public class SporeActivity extends SDLActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);  // no dimming while playing
         preferFastDisplayMode();
         screenScale = SporeControls.screenScale(this);
+        // Black around a smaller picture (Screen size): on an OLED screen black pixels are off, so the border looks
+        // like the phone's own frame instead of grey bars.
+        getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.BLACK));
+        if (mLayout != null) mLayout.setBackgroundColor(android.graphics.Color.BLACK);
         if (screenScale < 100 && mLayout != null) {
             // sized before the first layout (from the display), so the surface does not start full screen and shrink
             android.util.DisplayMetrics real = new android.util.DisplayMetrics();

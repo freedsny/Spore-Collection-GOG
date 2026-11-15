@@ -150,7 +150,7 @@ public class SporeControls extends View {
         ES.put("Creature: tap to walk / act, drag to turn the camera, stick to walk, 1-4 abilities", "Criatura: toca para caminar / actuar, arrastra para girar la cámara, joystick para caminar, 1-4 habilidades");
         ES.put("Tap to select, hold to order, drag to move the map, two fingers turn, Select for a box", "Toca para elegir, mantén para dar órdenes, arrastra para mover el mapa, dos dedos giran, Elegir para un recuadro");
         ES.put("Space: hold a finger to fly there, tap to pick, two fingers turn, +/- altitude", "Espacio: mantén un dedo para volar hacia allí, toca para elegir, dos dedos giran, +/- altura");
-        ES.put("Editor: drag parts, two fingers turn the camera, pinch to zoom", "Editor: arrastra las piezas, dos dedos giran la cámara, pellizca para zoom");
+        ES.put("Editor: drag parts, two fingers turn the camera, pinch to zoom, tap a part and +/- to resize it", "Editor: arrastra las piezas, dos dedos giran la cámara, pellizca para zoom; toca una pieza y usa + / − para cambiar su tamaño");
         ES.put("Game files not found", "No se encontraron los archivos del juego");
         ES.put("Some game files are missing", "Faltan algunos archivos del juego");
         ES.put("Copy these folders from your SPORE folder on the PC (GOG version, with Galactic Adventures): SporebinEP1, Data, DataEP1 and bp1content (about 6 GB), to one of these places:", "Copia estas carpetas de tu carpeta de SPORE en el PC (versión GOG, con Aventuras Galácticas): SporebinEP1, Data, DataEP1 y bp1content (unos 6 GB), a uno de estos lugares:");
@@ -221,7 +221,20 @@ public class SporeControls extends View {
     // The game's picture smaller than the screen, black around it: nothing under rounded corners or the camera hole.
     // SporeActivity sizes SDL's surface with it on start (screenScale).
     private final Setting sScreen = new Setting("Screen size", "Размер экрана", "screen_scale",
-            new String[] {"100%", "97%", "94%", "91%", "88%"}, new int[] {100, 97, 94, 91, 88}, 100, true, false);
+            percents(100, 80), percentValues(100, 80), 100, true, false);
+
+    /** "100%", "99%", ... down to low: one step per percent. */
+    private static String[] percents(int high, int low) {
+        String[] out = new String[high - low + 1];
+        for (int i = 0; i < out.length; ++i) out[i] = (high - i) + "%";
+        return out;
+    }
+
+    private static int[] percentValues(int high, int low) {
+        int[] out = new int[high - low + 1];
+        for (int i = 0; i < out.length; ++i) out[i] = high - i;
+        return out;
+    }
     private final Setting sMode = new Setting("Touch mode", "Касания", "ui_touchpad",
             tr(new String[] {"Direct", "Touchpad"}, new String[] {"Прямые", "Тачпад"}), new int[] {0, 1}, 0, false,
             false);
@@ -404,8 +417,8 @@ public class SporeControls extends View {
                 return ru ? "Космос: держи палец — лететь туда, тап — выбрать, два пальца — камера, +/− — высота"
                           : tx("Space: hold a finger to fly there, tap to pick, two fingers turn, +/- altitude");
             case EDITOR:
-                return ru ? "Редактор: тяни детали пальцем, два пальца — камера, щипок — зум"
-                          : tx("Editor: drag parts, two fingers turn the camera, pinch to zoom");
+                return ru ? "Редактор: тяни детали пальцем, два пальца — камера, щипок — зум, тап по детали и +/− — размер"
+                          : tx("Editor: drag parts, two fingers turn the camera, pinch to zoom, tap a part and +/- to resize it");
             default:
                 return null;
         }
@@ -465,6 +478,10 @@ public class SporeControls extends View {
             case EDITOR:
                 actions.add(new Button(tx("Undo"), SporeControls::undo));
                 actions.add(new Button(tx("Redo"), SporeControls::redo));
+                // The editors resize the part (or spine bone) under the mouse with the wheel. The mouse stays where a
+                // finger was lifted: tap the part, then + / - (pinching turns the wheel too, but moves the camera).
+                actions.add(new Button("+", () -> wheel(1)));
+                actions.add(new Button("\u2212", () -> wheel(-1)));
                 break;
             default:
                 break;
