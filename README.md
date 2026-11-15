@@ -26,8 +26,8 @@ apoyarlo en Patreon: **[patreon.com/VinTeRuS](https://www.patreon.com/cw/VinTeRu
 Los APK están en la página de **[Releases](https://github.com/freedsny/Spore-Collection-GOG/releases)**. El APK no
 trae los archivos del juego: necesitas tu propia copia de Spore (ver abajo).
 
-- `Spore-Collection-GOG.apk`: para GPUs con Vulkan 1.3 (la mayoría de teléfonos).
-- `Spore-Collection-GOG-vk11.apk`: para GPUs viejas cuyo driver solo tiene Vulkan 1.1 (Mali y PowerVR antiguos).
+- `Spore-Collection-GOG-<versión>.apk`: para GPUs con Vulkan 1.3 (la mayoría de teléfonos).
+- `Spore-Collection-GOG-<versión>-vk11.apk`: para GPUs viejas cuyo driver solo tiene Vulkan 1.1 (Mali y PowerVR antiguos).
 
 ## Instalación
 

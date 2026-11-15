@@ -1,7 +1,7 @@
 # Builds this fork's APKs on GitHub: the Java side from this repo, the native libraries from an official release of
 # VinTeRuS/spore-re (android/build-fork-apk.sh). The APKs are published as a release of this repo, ready to download
 # on the phone.
-name: APK del fork
+name: APK Spore Collection GOG
 
 on:
   push:
@@ -51,22 +51,29 @@ jobs:
         run: git clone -q --depth 1 --branch "$SDL2_TAG" https://github.com/libsdl-org/SDL.git build/sdl
 
       - name: Build
-        run: android/build-fork-apk.sh upstream/*.apk
+        run: |
+          echo "APK_BASE=Spore-Collection-GOG-$UPSTREAM_TAG-n${{ github.run_number }}" >> "$GITHUB_ENV"
+          APK_PREFIX="Spore-Collection-GOG-$UPSTREAM_TAG-n${{ github.run_number }}" android/build-fork-apk.sh upstream/*.apk
 
       - uses: actions/upload-artifact@v4
         with:
           name: apk
           path: build/fork-apk/*.apk
 
+      # Named like the OpenCE releases: tag spore-<date>-<time> (Bogota), title with the game, the official version
+      # the native libraries come from and the build number, the commit's message under "Cambios".
       - name: Release
         run: |
-          tag="fork-${{ github.run_number }}"
+          tag="spore-$(TZ=America/Bogota date +%Y%m%d-%H%M)"
+          title="Spore Collection GOG - spore-re $UPSTREAM_TAG (#${{ github.run_number }})"
           {
-            echo "APK del fork (commit ${GITHUB_SHA::7}), librerías nativas de VinTeRuS/spore-re $UPSTREAM_TAG."
+            echo "APK de Spore Collection GOG (librerías nativas de spore-re $UPSTREAM_TAG, de VinTeRuS)."
+            echo "Teclado: botón ⌨. Tamaño de pantalla: ⚙ > Graphics > Screen size (aplica al reiniciar)."
             echo
-            echo "- \`Spore-Collection-GOG.apk\`: Vulkan 1.3 (la mayoría de teléfonos)."
-            echo "- \`Spore-Collection-GOG-vk11.apk\`: Vulkan 1.1 (GPUs viejas)."
+            echo "- \`$APK_BASE.apk\`: Vulkan 1.3 (la mayoría de teléfonos)."
+            echo "- \`$APK_BASE-vk11.apk\`: Vulkan 1.1 (GPUs viejas)."
             echo
-            echo "Se instala al lado de la app oficial (otro nombre: com.sporere.game.freed)."
+            echo "## Cambios"
+            git log -1 --format=%B | grep -v -e '^Co-Authored-By:' -e '^Claude-Session:'
           } > notes.md
-          gh release create "$tag" build/fork-apk/*.apk --title "Spore Collection GOG $tag" --notes-file notes.md --target "$GITHUB_SHA"
+          gh release create "$tag" build/fork-apk/*.apk --title "$title" --notes-file notes.md --target "$GITHUB_SHA"
