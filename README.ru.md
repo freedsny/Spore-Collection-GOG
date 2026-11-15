@@ -1,6 +1,6 @@
 # spore-re
 
-Русский | [English](README.md)
+[Español](README.md) | [English](README.en.md) | Русский
 
 Нативный порт Spore (вместе с «Космическими приключениями») на Android. Это не эмулятор и не Wine: `SporeApp.exe`
 статически перекомпилирован из x86 в C, собран под arm64 и работает поверх моей собственной прослойки Win32/D3D9

@@ -1,64 +1,81 @@
-# spore-re
+# Spore Collection GOG
 
-[Русский](README.ru.md) | English
+Español | [English](README.en.md) | [Русский](README.ru.md)
 
-Native Android port of Spore (with Galactic Adventures). Not an emulator and not Wine: `SporeApp.exe` is statically
-recompiled from x86 to C, built for arm64 and run on top of my own Win32/D3D9 layer (SDL2, DXVK).
+Port nativo de Spore (con Aventuras Galácticas) para Android. No es un emulador ni Wine: `SporeApp.exe` se recompila
+de x86 a C, se compila para arm64 y corre sobre una capa propia de Win32/D3D9 (SDL2, DXVK).
 
-> **The project is at a very early stage.** Expect a lot of small, frequent commits, quick fixes, things breaking
-> and getting rewritten.
+Este repositorio es un fork de **[VinTeRuS/spore-re](https://github.com/VinTeRuS/spore-re)**, el port original
+creado por VinTeRuS. Todo el mérito del port es suyo; aquí solo se agregan algunas mejoras. Si te gusta, puedes
+apoyarlo en Patreon: **[patreon.com/VinTeRuS](https://www.patreon.com/cw/VinTeRuS/membership)**.
 
-If you like the port, you can support me on Patreon: **[patreon.com/VinTeRuS](https://www.patreon.com/cw/VinTeRuS/membership)**.
+> **El proyecto está en una etapa muy temprana.** Puede haber errores, cierres inesperados y cambios frecuentes.
 
-## Download
+## Qué tiene de nuevo este fork
 
-Test builds (APK) are on the **[Releases](https://github.com/VinTeRuS/spore-re/releases)** page. The APK has no game
-files in it: you need your own copy of Spore (see below).
+- **Teclado del teléfono dentro del juego**: el botón ⌨ abre el teclado y lo que escribes llega al juego (nombres
+  de criaturas, planetas, la consola de trucos). Funcionan tildes, ñ, dictado por voz y la tecla de borrar. Sin
+  autocorrector, para que no cambie los nombres inventados. Un teclado físico también sigue funcionando.
+- **Tamaño de pantalla** (Ajustes ⚙ → Graphics → *Screen size*): achica un poco la imagen del juego, centrada y sin
+  deformarla, para que nada quede debajo de las esquinas redondeadas o del agujero de la cámara. Se aplica al
+  reiniciar el juego.
+- **Nombre propio**: se instala como **Spore Collection GOG**, al lado de la app oficial, sin reemplazarla.
 
-## Installing
+## Descargar
 
-Android 10+, arm64 (phones from about 2019 on). Only tested on a Pixel 6 so far. Two APKs: `spore.apk` for GPUs with
-Vulkan 1.3 (most phones), `spore-vk11.apk` for older GPUs whose driver only has Vulkan 1.1 (older Mali, PowerVR).
+Los APK están en la página de **[Releases](https://github.com/freedsny/Spore-Collection-GOG/releases)**. El APK no
+trae los archivos del juego: necesitas tu propia copia de Spore (ver abajo).
 
-1. Copy the game folders `Data`, `DataEP1`, `SporebinEP1` and `bp1content` from your Spore install to
-   `Internal storage/Spore` on the phone (so there is `/sdcard/Spore/SporebinEP1/SporeApp.exe`).
-2. Install the APK, start it and allow "All files access".
-3. The game follows the phone's language; Settings (round button -> gear) -> Language picks another one.
+- `Spore-Collection-GOG.apk`: para GPUs con Vulkan 1.3 (la mayoría de teléfonos).
+- `Spore-Collection-GOG-vk11.apk`: para GPUs viejas cuyo driver solo tiene Vulkan 1.1 (Mali y PowerVR antiguos).
 
-## Game version
+## Instalación
 
-GOG Spore Collection 3.1.0.22, `SporebinEP1/SporeApp.exe` (sha256 in `re/target.sha256`). Other builds won't work.
+Android 10 o superior, arm64 (teléfonos de 2019 en adelante, aproximadamente).
 
-## Status
+1. Copia las carpetas del juego `Data`, `DataEP1`, `SporebinEP1` y `bp1content` de tu instalación de Spore a
+   `Almacenamiento interno/Spore` en el teléfono (debe quedar `/sdcard/Spore/SporebinEP1/SporeApp.exe`).
+2. Instala el APK, ábrelo y permite el "Acceso a todos los archivos".
+3. El juego usa el idioma del teléfono; puedes elegir otro en Ajustes (botón redondo → engranaje) → Language.
 
-- All stages (cell, creature, tribe, civilization, space), the editors, saves and sound work on a Pixel 6.
-- Touch controls change per stage (with a short hint): tap = click, hold = right click, one finger turns the
-  camera (creature, space) or moves the map (tribe, civilization), two fingers turn, pinch zooms, a movement stick and
-  ability buttons in the creature stage. Every button can be moved (Settings -> Layout).
-- Settings: resolution, sharpness (an upscaling filter, so a lower resolution keeps the interface big and crisp),
-  FPS limit 30-120, quality, button size and opacity.
-- Known problems: no Space Adventures entry in the main menu yet, C++ exceptions thrown by the game aren't handled
-  (some mod-made profiles crash), "Quit" in the pause menu closes the app (the game's own exit).
+Las partidas guardadas y los ajustes de esta app van en `Android/data/com.sporere.game.freed/files`, aparte de los
+de la app oficial.
 
-## What's in the repo
+## Versión del juego
 
-My own code: the Win32/D3D9 host, the Android app (Java, touch controls, settings), build scripts, the recompiler
-(`third_party/x86recomp`) and patches for DXVK. No game files and no recompiled game code: that code is generated
-from your own copy of the game at build time.
+GOG Spore Collection 3.1.0.22, `SporebinEP1/SporeApp.exe` (sha256 en `re/target.sha256`). Otras versiones no
+funcionan.
 
-## Building (rough)
+## Estado
 
-Linux, Python 3, Android NDK, the game installed somewhere.
+- Funcionan todas las etapas (célula, criatura, tribu, civilización, espacio), los editores, las partidas guardadas
+  y el sonido.
+- Los controles táctiles cambian según la etapa (con una pista corta): tocar = clic, mantener = clic derecho, un dedo
+  gira la cámara (criatura, espacio) o mueve el mapa (tribu, civilización), dos dedos giran, pellizcar hace zoom, y en
+  la etapa de criatura hay un joystick y botones de habilidades. Todos los botones se pueden mover
+  (Ajustes → Layout).
+- Ajustes: resolución, nitidez, límite de FPS 30-120, calidad, tamaño de pantalla, tamaño y opacidad de los botones.
+- Problemas conocidos: todavía no aparece Aventuras Espaciales en el menú principal, las excepciones de C++ del juego
+  no se manejan (algunos perfiles con mods se cierran), y "Salir" en el menú de pausa cierra la app (es la salida
+  normal del juego).
 
-1. `python3 -I third_party/x86recomp/tools/recomp.py --functions all --split 400 --out build/recomp/all` generates
-   C from the game (settings in `tools/recomp/game.py`).
-2. `make -j3` in `src/native` for a desktop (Linux) build, `make -j3 PLATFORM=android` for arm64.
-3. `android/build-deps.sh` (SDL2, FAudio, DXVK with the patches from `android/patches`), then `android/build-apk.sh`
-   gives `build/apk/spore.apk`.
-4. Optional profile-guided optimization: `make PLATFORM=android PGO=gen OUT=../../build/android-pgo-gen/arm64-v8a`,
-   play that build for a while, then `android/pgo.sh` builds the optimized APK.
+## Cómo se compila el APK de este fork
+
+Cada cambio que se sube a `android/` hace que GitHub Actions compile los APK solo (`.github/workflows/fork-apk.yml`)
+y los publique en Releases. No necesita los archivos del juego: toma el código Java de este repositorio y las
+librerías nativas del último release oficial de VinTeRuS (`android/build-fork-apk.sh`). Por eso, por ahora, las
+mejoras de este fork son solo en la parte Java (controles, teclado, ajustes, pantalla).
+
+Para cambiar la parte nativa (el motor) hace falta la compilación completa del port original, con el juego
+instalado y el Android NDK: ver [README en inglés](README.en.md#building-rough).
+
+## Qué hay en el repositorio
+
+El código del port: el host Win32/D3D9, la app de Android (Java, controles táctiles, ajustes), los scripts de
+compilación, el recompilador (`third_party/x86recomp`) y parches para DXVK. No hay archivos del juego ni código del
+juego recompilado: ese código se genera al compilar, a partir de tu propia copia del juego.
 
 ## Legal
 
-You need your own bought copy of Spore. Spore is a trademark of Electronic Arts; this project isn't affiliated with
-EA or Maxis.
+Necesitas tu propia copia comprada de Spore. Spore es una marca registrada de Electronic Arts; este proyecto no está
+afiliado a EA ni a Maxis.
