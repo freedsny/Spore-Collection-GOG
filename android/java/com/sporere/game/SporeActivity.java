@@ -131,9 +131,9 @@ public class SporeActivity extends SDLActivity {
         Toast.makeText(this, SetupActivity.CREDIT, Toast.LENGTH_LONG).show();
         TextView mark = new TextView(this);
         mark.setText(SetupActivity.CREDIT);
-        mark.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
-        mark.setTextColor(0x99ffffff);
-        mark.setShadowLayer(3, 1, 1, 0xcc000000);
+        mark.setTextSize(TypedValue.COMPLEX_UNIT_SP, 8);  // smaller and fainter: still there, out of the way
+        mark.setTextColor(0x59ffffff);
+        mark.setShadowLayer(2, 1, 1, 0x66000000);
         mark.setClickable(false);
         mark.setFocusable(false);
         int pad = (int) (6 * getResources().getDisplayMetrics().density);
