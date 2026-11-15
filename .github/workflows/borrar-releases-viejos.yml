@@ -1,0 +1,18 @@
+# One-time cleanup: deletes the first two releases (named "fork") and their tags. Removed after it ran.
+name: Borrar releases viejos
+on:
+  push:
+    branches: [master]
+    paths: ['.github/workflows/borrar-releases-viejos.yml']
+permissions:
+  contents: write
+jobs:
+  borrar:
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - run: |
+          for tag in fork-1 fork-2; do
+            gh release delete "$tag" --repo "$GITHUB_REPOSITORY" --cleanup-tag --yes || echo "$tag: no existe"
+          done
