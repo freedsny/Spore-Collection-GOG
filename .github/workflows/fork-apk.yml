@@ -68,7 +68,7 @@ jobs:
           title="Spore Collection GOG - spore-re $UPSTREAM_TAG (#${{ github.run_number }})"
           {
             echo "APK de Spore Collection GOG (librerías nativas de spore-re $UPSTREAM_TAG, de VinTeRuS)."
-            echo "Teclado: botón ⌨. Tamaño de pantalla: ⚙ > Graphics > Screen size (aplica al reiniciar)."
+            echo "Teclado: botón ⌨. Tamaño de pantalla: ⚙ > Gráficos > Tamaño de pantalla (aplica al reiniciar)."
             echo
             echo "- \`$APK_BASE.apk\`: Vulkan 1.3 (la mayoría de teléfonos)."
             echo "- \`$APK_BASE-vk11.apk\`: Vulkan 1.1 (GPUs viejas)."

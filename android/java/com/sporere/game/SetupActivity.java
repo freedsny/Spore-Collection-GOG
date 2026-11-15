@@ -231,30 +231,30 @@ public class SetupActivity extends Activity {
         LinearLayout col = new LinearLayout(this);
         col.setOrientation(LinearLayout.VERTICAL);
         col.setPadding(dp(32), dp(24), dp(32), dp(24));
-        col.addView(text(problem == null ? "Game files not found" : "Some game files are missing", 22, true));
+        col.addView(text(SporeControls.tx(problem == null ? "Game files not found" : "Some game files are missing"), 22, true));
         if (problem != null) {
             TextView p = text(problem, 15, true);
             p.setTextColor(Color.rgb(255, 120, 100));
             col.addView(p);
         }
-        col.addView(text("Copy these folders from your SPORE folder on the PC (GOG version, with Galactic "
-                + "Adventures): SporebinEP1, Data, DataEP1 and bp1content (about 6 GB), to one of these places:",
+        col.addView(text(SporeControls.tx("Copy these folders from your SPORE folder on the PC (GOG version, with Galactic "
+                + "Adventures): SporebinEP1, Data, DataEP1 and bp1content (about 6 GB), to one of these places:"),
                 15, false));
         col.addView(text("1. " + (app != null ? app.getAbsolutePath() : "Android/data/" + getPackageName()
-                + "/files/game") + "\n   The folder exists now. On Android 11+ most file managers cannot open "
-                + "Android/data; copy from a PC over USB, or use option 2.", 14, false));
-        String access = hasSharedAccess() ? "access granted" : "needs file access: tap the button below";
-        col.addView(text("2. " + shared.getAbsolutePath() + "\n   Any file manager can open it (" + access + ").",
+                + "/files/game") + SporeControls.tx("\n   The folder exists now. On Android 11+ most file managers cannot open "
+                + "Android/data; copy from a PC over USB, or use option 2."), 14, false));
+        String access = SporeControls.tx(hasSharedAccess() ? "access granted" : "needs file access: tap the button below");
+        col.addView(text("2. " + shared.getAbsolutePath() + SporeControls.tx("\n   Any file manager can open it (") + access + ").",
                 14, false));
-        col.addView(text("Then tap Check again.", 15, false));
+        col.addView(text(SporeControls.tx("Then tap Check again."), 15, false));
 
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.START);
-        row.addView(button("Check again", this::check));
-        if (!hasSharedAccess()) row.addView(button("Allow file access", this::requestAccess));
-        row.addView(button("Exit", this::finish));
-        row.addView(button("Support on Patreon", () -> openSupport(this)));
+        row.addView(button(SporeControls.tx("Check again"), this::check));
+        if (!hasSharedAccess()) row.addView(button(SporeControls.tx("Allow file access"), this::requestAccess));
+        row.addView(button(SporeControls.tx("Exit"), this::finish));
+        row.addView(button(SporeControls.tx("Support on Patreon"), () -> openSupport(this)));
         row.addView(button("GitHub", () -> openGitHub(this)));
         col.addView(row);
         TextView credit = text(CREDIT + " \u00b7 " + CREDIT_URL, 12, false);

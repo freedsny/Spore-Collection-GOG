@@ -190,6 +190,6 @@ public class SporeStick extends View {
         paint.setColor(argb(0xff, 0xffffff));
         paint.setTextAlign(Paint.Align.CENTER);
         paint.setTextSize(14 * density * radius / (62 * density));
-        c.drawText(SporeControls.ru() ? "Прыжок" : "Jump", jumpX, jumpY + 5 * density, paint);
+        c.drawText(SporeControls.ru() ? "Прыжок" : SporeControls.tx("Jump"), jumpX, jumpY + 5 * density, paint);
     }
 }

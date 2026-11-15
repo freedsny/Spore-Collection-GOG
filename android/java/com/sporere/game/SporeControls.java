@@ -89,12 +89,94 @@ public class SporeControls extends View {
         }
 
         String label() {
-            return ru() ? ruLabel : en;
+            return ru() ? ruLabel : tx(en);
         }
     }
 
+    // Spanish (the phone's language es-*): the English texts of the controls and the settings, translated. Russian
+    // keeps its own texts (ru()); any other language stays English.
+    static boolean es() {
+        return "es".equals(Locale.getDefault().getLanguage());
+    }
+
+    private static final java.util.Map<String, String> ES = new java.util.HashMap<>();
+
+    static {
+        ES.put("Quality", "Calidad");
+        ES.put("Resolution", "Resolución");
+        ES.put("Screen size", "Tamaño de pantalla");
+        ES.put("FPS limit", "Límite de FPS");
+        ES.put("Sharpness", "Nitidez");
+        ES.put("Wait for GPU", "Esperar a la GPU");
+        ES.put("Show FPS", "Mostrar FPS");
+        ES.put("Touch mode", "Modo táctil");
+        ES.put("Camera speed", "Velocidad de cámara");
+        ES.put("Button size", "Tamaño de botones");
+        ES.put("Button opacity", "Opacidad de botones");
+        ES.put("Language", "Idioma");
+        ES.put("Vibration", "Vibración");
+        ES.put("Off", "No");
+        ES.put("On", "Sí");
+        ES.put("Fast", "Rápido");
+        ES.put("Balanced", "Equilibrado");
+        ES.put("Pretty", "Bonito");
+        ES.put("Low", "Baja");
+        ES.put("Medium", "Media");
+        ES.put("High", "Alta");
+        ES.put("Max", "Máx");
+        ES.put("Direct", "Directo");
+        ES.put("Touchpad", "Touchpad");
+        ES.put("Slow", "Lento");
+        ES.put("Normal", "Normal");
+        ES.put("Order", "Orden");
+        ES.put("Select", "Elegir");
+        ES.put("Undo", "Deshacer");
+        ES.put("Redo", "Rehacer");
+        ES.put("Stages", "Etapas");
+        ES.put("Restart the game to apply the * settings", "Reinicia el juego para aplicar los ajustes con *");
+        ES.put("Stick", "Joystick");
+        ES.put("Jump", "Saltar");
+        ES.put("Drag the controls", "Arrastra los controles");
+        ES.put("Reset", "Restablecer");
+        ES.put("Done", "Listo");
+        ES.put("Settings", "Ajustes");
+        ES.put("   ·   * = after restart", "   ·   * = al reiniciar");
+        ES.put("GRAPHICS", "GRÁFICOS");
+        ES.put("CONTROLS", "CONTROLES");
+        ES.put("Layout", "Mover botones");
+        ES.put("Close", "Cerrar");
+        ES.put("All stages unlocked (cheat console: levels -unlock)", "Todas las etapas desbloqueadas (consola de trucos: levels -unlock)");
+        ES.put("Cell: tap or drag to swim, pinch to zoom", "Célula: toca o arrastra para nadar, pellizca para zoom");
+        ES.put("Creature: tap to walk / act, drag to turn the camera, stick to walk, 1-4 abilities", "Criatura: toca para caminar / actuar, arrastra para girar la cámara, joystick para caminar, 1-4 habilidades");
+        ES.put("Tap to select, hold to order, drag to move the map, two fingers turn, Select for a box", "Toca para elegir, mantén para dar órdenes, arrastra para mover el mapa, dos dedos giran, Elegir para un recuadro");
+        ES.put("Space: hold a finger to fly there, tap to pick, two fingers turn, +/- altitude", "Espacio: mantén un dedo para volar hacia allí, toca para elegir, dos dedos giran, +/- altura");
+        ES.put("Editor: drag parts, two fingers turn the camera, pinch to zoom", "Editor: arrastra las piezas, dos dedos giran la cámara, pellizca para zoom");
+        ES.put("Game files not found", "No se encontraron los archivos del juego");
+        ES.put("Some game files are missing", "Faltan algunos archivos del juego");
+        ES.put("Copy these folders from your SPORE folder on the PC (GOG version, with Galactic Adventures): SporebinEP1, Data, DataEP1 and bp1content (about 6 GB), to one of these places:", "Copia estas carpetas de tu carpeta de SPORE en el PC (versión GOG, con Aventuras Galácticas): SporebinEP1, Data, DataEP1 y bp1content (unos 6 GB), a uno de estos lugares:");
+        ES.put("\n   The folder exists now. On Android 11+ most file managers cannot open Android/data; copy from a PC over USB, or use option 2.", "\n   La carpeta ya existe. En Android 11 o superior, la mayoría de gestores de archivos no pueden abrir Android/data; copia desde un PC por USB o usa la opción 2.");
+        ES.put("access granted", "acceso concedido");
+        ES.put("needs file access: tap the button below", "necesita acceso a archivos: toca el botón de abajo");
+        ES.put("\n   Any file manager can open it (", "\n   Cualquier gestor de archivos puede abrirla (");
+        ES.put("Then tap Check again.", "Luego toca Comprobar de nuevo.");
+        ES.put("Check again", "Comprobar de nuevo");
+        ES.put("Allow file access", "Permitir acceso a archivos");
+        ES.put("Exit", "Salir");
+        ES.put("Support on Patreon", "Apoyar en Patreon");
+    }
+
+    /** The English text, in Spanish on a Spanish phone (when there is a translation). */
+    static String tx(String en) {
+        if (!es()) return en;
+        String s = ES.get(en);
+        return s != null ? s : en;
+    }
+
     private static String[] tr(String[] en, String[] ruNames) {
-        return ru() ? ruNames : en;
+        if (ru()) return ruNames;
+        String[] out = new String[en.length];
+        for (int i = 0; i < en.length; ++i) out[i] = tx(en[i]);
+        return out;
     }
 
     // The game's language (Data/Locale folders of the GOG release), each in its own language; Auto follows the phone.
@@ -310,20 +392,20 @@ public class SporeControls extends View {
         switch (s) {
             case CELL:
                 return ru ? "Клетка: тап или веди пальцем — плыть, щипок — зум"
-                          : "Cell: tap or drag to swim, pinch to zoom";
+                          : tx("Cell: tap or drag to swim, pinch to zoom");
             case CREATURE:
                 return ru ? "Существо: тап — идти / действовать, палец — камера, стик — ходьба, 1–4 — способности"
-                          : "Creature: tap to walk / act, drag to turn the camera, stick to walk, 1-4 abilities";
+                          : tx("Creature: tap to walk / act, drag to turn the camera, stick to walk, 1-4 abilities");
             case TRIBE:
             case CIV:
                 return ru ? "Тап — выбрать, удержание — приказ, палец — двигать карту, два пальца — поворот, «Выбор» — рамка"
-                          : "Tap to select, hold to order, drag to move the map, two fingers turn, Select for a box";
+                          : tx("Tap to select, hold to order, drag to move the map, two fingers turn, Select for a box");
             case SPACE:
                 return ru ? "Космос: держи палец — лететь туда, тап — выбрать, два пальца — камера, +/− — высота"
-                          : "Space: hold a finger to fly there, tap to pick, two fingers turn, +/- altitude";
+                          : tx("Space: hold a finger to fly there, tap to pick, two fingers turn, +/- altitude");
             case EDITOR:
                 return ru ? "Редактор: тяни детали пальцем, два пальца — камера, щипок — зум"
-                          : "Editor: drag parts, two fingers turn the camera, pinch to zoom";
+                          : tx("Editor: drag parts, two fingers turn the camera, pinch to zoom");
             default:
                 return null;
         }
@@ -372,8 +454,8 @@ public class SporeControls extends View {
                 break;
             case TRIBE:
             case CIV:
-                actions.add(new Button(ru() ? "Приказ" : "Order", this::toggleRightTaps));
-                actions.add(new Button(ru() ? "Выбор" : "Select", this::armBox));
+                actions.add(new Button(ru() ? "Приказ" : tx("Order"), this::toggleRightTaps));
+                actions.add(new Button(ru() ? "Выбор" : tx("Select"), this::armBox));
                 break;
             case SPACE:  // tools on the number keys, altitude on +/- (main keyboard and keypad: whichever the game reads)
                 for (int k = 1; k <= 4; ++k) actions.add(keyButton(String.valueOf(k), KeyEvent.KEYCODE_0 + k));
@@ -381,8 +463,8 @@ public class SporeControls extends View {
                 actions.add(keysButton("\u2212", KeyEvent.KEYCODE_MINUS, KeyEvent.KEYCODE_NUMPAD_SUBTRACT));
                 break;
             case EDITOR:
-                actions.add(new Button("Undo", SporeControls::undo));
-                actions.add(new Button("Redo", SporeControls::redo));
+                actions.add(new Button(tx("Undo"), SporeControls::undo));
+                actions.add(new Button(tx("Redo"), SporeControls::redo));
                 break;
             default:
                 break;
@@ -480,7 +562,7 @@ public class SporeControls extends View {
             prefs.edit().putBoolean("stick2_" + stage.name(), show).apply();
             invalidate();
         }));
-        buttons.add(new Button("Stages", this::unlockStages));
+        buttons.add(new Button(tx("Stages"), this::unlockStages));
         buttons.add(new Button("⌨", this::toggleKeyboard));
         buttons.add(new Button("⚙", () -> {
             panelOpen = true;
@@ -533,7 +615,7 @@ public class SporeControls extends View {
         handler.postDelayed(() -> SDLActivity.onNativeKeyDown(KeyEvent.KEYCODE_C), 2350);
         handler.postDelayed(() -> SDLActivity.onNativeKeyUp(KeyEvent.KEYCODE_C), 2550);
         handler.postDelayed(comboUp, 2700);
-        android.widget.Toast.makeText(getContext(), "All stages unlocked (cheat console: levels -unlock)",
+        android.widget.Toast.makeText(getContext(), tx("All stages unlocked (cheat console: levels -unlock)"),
                 android.widget.Toast.LENGTH_LONG).show();
     }
 
@@ -941,7 +1023,7 @@ public class SporeControls extends View {
         panelOpen = false;
         if (engineChanged) {
             android.widget.Toast.makeText(getContext(), ru() ? "Настройки со * применятся после перезапуска игры"
-                    : "Restart the game to apply the * settings", android.widget.Toast.LENGTH_LONG).show();
+                    : tx("Restart the game to apply the * settings"), android.widget.Toast.LENGTH_LONG).show();
         }
         invalidate();
     }
@@ -1028,9 +1110,9 @@ public class SporeControls extends View {
         float w = getWidth(), h = getHeight(), sc = scale();
         out.add(new Object[] {"handle", handleFx * w, handleFy * h, 22 * density * sc, "☰"});
         out.add(new Object[] {"stick", layX("stick", SporeStick.STICK_X) * w, layY("stick", SporeStick.STICK_Y) * h,
-                62 * density * sc, ru() ? "Стик" : "Stick"});
+                62 * density * sc, ru() ? "Стик" : tx("Stick")});
         out.add(new Object[] {"jump", layX("jump", SporeStick.JUMP_X) * w, layY("jump", SporeStick.JUMP_Y) * h,
-                36 * density * sc, ru() ? "Прыжок" : "Jump"});
+                36 * density * sc, ru() ? "Прыжок" : tx("Jump")});
         for (int i = 0; i < SLOT_IDS.length; ++i) {
             String label = i < actions.size() ? actions.get(i).label : String.valueOf(i + 1);
             out.add(new Object[] {SLOT_IDS[i], layX(SLOT_IDS[i], SLOT_DEFAULTS[i][0]) * w,
@@ -1105,7 +1187,7 @@ public class SporeControls extends View {
         }
         // the bar: what to do, Done and Reset
         float bw = 130 * density, bh = 40 * density, top = 12 * density, gap = 10 * density;
-        String title = ru() ? "Перетаскивайте кнопки" : "Drag the controls";
+        String title = ru() ? "Перетаскивайте кнопки" : tx("Drag the controls");
         text.setTextSize(15 * density);
         float tw = text.measureText(title) + 30 * density;
         float total = tw + 2 * (bw + gap), left = (getWidth() - total) / 2;
@@ -1121,8 +1203,8 @@ public class SporeControls extends View {
         c.drawRoundRect(editDone, 12 * density, 12 * density, fill);
         text.setColor(Color.WHITE);
         c.drawText(title, t.centerX(), t.centerY() + 5 * density, text);
-        c.drawText(ru() ? "Сброс" : "Reset", editReset.centerX(), editReset.centerY() + 5 * density, text);
-        c.drawText(ru() ? "Готово" : "Done", editDone.centerX(), editDone.centerY() + 5 * density, text);
+        c.drawText(ru() ? "Сброс" : tx("Reset"), editReset.centerX(), editReset.centerY() + 5 * density, text);
+        c.drawText(ru() ? "Готово" : tx("Done"), editDone.centerX(), editDone.centerY() + 5 * density, text);
         text.setTextSize(14 * density);
     }
 
@@ -1247,6 +1329,7 @@ public class SporeControls extends View {
             fill.setColor(TEAL);
             c.drawRoundRect(b.rect, 12 * density, 12 * density, fill);
             fill.setStyle(Paint.Style.FILL);
+            fitText(b.label, size * 0.9f, 14 * density);
             c.drawText(b.label, b.rect.centerX(), b.rect.centerY() + 5 * density, text);
             bx += toLeft ? -(size + gap) : size + gap;
         }
@@ -1266,7 +1349,7 @@ public class SporeControls extends View {
             text.setTextAlign(Paint.Align.CENTER);
         }
         if (hint != null && !panelOpen) {
-            text.setTextSize(15 * density);
+            fitText(hint, getWidth() - 72 * density, 15 * density);  // a long hint gets smaller to fit the screen
             float w = Math.min(getWidth() - 32 * density, text.measureText(hint) + 40 * density);
             float top = 12 * density, h = 40 * density;
             RectF hr = new RectF((getWidth() - w) / 2, top, (getWidth() + w) / 2, top + h);
@@ -1281,6 +1364,13 @@ public class SporeControls extends View {
         if (panelOpen) drawPanel(c);
     }
 
+    /** Sets the text size to size, or smaller so that label fits in maxWidth. */
+    private void fitText(String label, float maxWidth, float size) {
+        text.setTextSize(size);
+        float w = text.measureText(label);
+        if (w > maxWidth && w > 0) text.setTextSize(size * maxWidth / w);
+    }
+
     /** The stage's action buttons, each in its layout slot (sized and faded per the settings). */
     private void drawActions(Canvas c, float size, float gap) {
         if (actions.isEmpty() || editLayout) return;
@@ -1291,8 +1381,8 @@ public class SporeControls extends View {
             float x = layX(SLOT_IDS[i], SLOT_DEFAULTS[i][0]) * getWidth();
             float y = layY(SLOT_IDS[i], SLOT_DEFAULTS[i][1]) * getHeight();
             b.rect.set(x - r, y - r, x + r, y + r);
-            boolean on = ((b.label.equals("Order") || b.label.equals("Приказ")) && rightTaps)
-                    || ((b.label.equals("Select") || b.label.equals("Выбор")) && boxArmed);
+            boolean on = ((b.label.equals(tx("Order")) || b.label.equals("Приказ")) && rightTaps)
+                    || ((b.label.equals(tx("Select")) || b.label.equals("Выбор")) && boxArmed);
             fill.setStyle(Paint.Style.FILL);
             fill.setColor(alphaOf(on ? 0xd0ffb03a : 0x900a1a2a));
             c.drawOval(b.rect, fill);
@@ -1302,6 +1392,7 @@ public class SporeControls extends View {
             c.drawOval(b.rect, fill);
             fill.setStyle(Paint.Style.FILL);
             text.setColor(alphaOf(0xffffffff));
+            fitText(b.label, r * 1.7f, 16 * density * scale());  // longer words (Spanish) get smaller, not cut
             c.drawText(b.label, b.rect.centerX(), b.rect.centerY() + 6 * density * scale(), text);
         }
         text.setTextSize(14 * density);
@@ -1335,10 +1426,10 @@ public class SporeControls extends View {
         text.setTextAlign(Paint.Align.LEFT);
         text.setColor(Color.WHITE);
         text.setTextSize(19 * density);
-        c.drawText(ru() ? "Настройки" : "Settings", left + pad, top + 30 * density, text);
+        c.drawText(ru() ? "Настройки" : tx("Settings"), left + pad, top + 30 * density, text);
         text.setTextSize(11 * density);
         text.setColor(0xff8aa8b8);
-        c.drawText(SetupActivity.CREDIT + (ru() ? "   ·   * — после перезапуска" : "   ·   * = after restart"),
+        c.drawText(SetupActivity.CREDIT + (ru() ? "   ·   * — после перезапуска" : tx("   ·   * = after restart")),
                 left + pad, top + 47 * density, text);
         float cs = 34 * density;
         panelClose.set(left + w - pad - cs, top + 12 * density, left + w - pad, top + 12 * density + cs);
@@ -1349,7 +1440,7 @@ public class SporeControls extends View {
         text.setTextSize(18 * density);
         c.drawText("×", panelClose.centerX(), panelClose.centerY() + 6 * density, text);
         float colW = (w - pad * 3) / 2;
-        String[] titles = {ru() ? "ГРАФИКА" : "GRAPHICS", ru() ? "УПРАВЛЕНИЕ" : "CONTROLS"};
+        String[] titles = {ru() ? "ГРАФИКА" : tx("GRAPHICS"), ru() ? "УПРАВЛЕНИЕ" : tx("CONTROLS")};
         Setting[][] cols = {graphics, controlsSettings};
         for (int col = 0; col < 2; ++col) {
             float cx = left + pad + col * (colW + pad), y = top + header;
@@ -1399,10 +1490,10 @@ public class SporeControls extends View {
         text.setTextAlign(Paint.Align.CENTER);
         text.setColor(Color.WHITE);
         text.setTextSize(14 * density);
-        c.drawText(ru() ? "Раскладка" : "Layout", panelLayout.centerX(), panelLayout.centerY() + 5 * density, text);
+        c.drawText(ru() ? "Раскладка" : tx("Layout"), panelLayout.centerX(), panelLayout.centerY() + 5 * density, text);
         c.drawText("Patreon", panelSupport.centerX(), panelSupport.centerY() + 5 * density, text);
         c.drawText("GitHub", panelGitHub.centerX(), panelGitHub.centerY() + 5 * density, text);
-        c.drawText(ru() ? "Закрыть" : "Close", closeBig.centerX(), closeBig.centerY() + 5 * density, text);
+        c.drawText(ru() ? "Закрыть" : tx("Close"), closeBig.centerX(), closeBig.centerY() + 5 * density, text);
         panelCloseBig.set(closeBig);
     }
 

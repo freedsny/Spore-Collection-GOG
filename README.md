@@ -16,9 +16,10 @@ apoyarlo en Patreon: **[patreon.com/VinTeRuS](https://www.patreon.com/cw/VinTeRu
 - **Teclado del teléfono dentro del juego**: el botón ⌨ abre el teclado y lo que escribes llega al juego (nombres
   de criaturas, planetas, la consola de trucos). Funcionan tildes, ñ, dictado por voz y la tecla de borrar. Sin
   autocorrector, para que no cambie los nombres inventados. Un teclado físico también sigue funcionando.
-- **Tamaño de pantalla** (Ajustes ⚙ → Graphics → *Screen size*): achica un poco la imagen del juego, centrada y sin
+- **Tamaño de pantalla** (Ajustes ⚙ → Gráficos → *Tamaño de pantalla*): achica un poco la imagen del juego, centrada y sin
   deformarla, para que nada quede debajo de las esquinas redondeadas o del agujero de la cámara. Se aplica al
   reiniciar el juego.
+- **Ajustes y controles en español** cuando el teléfono está en español.
 - **Nombre propio**: se instala como **Spore Collection GOG**, al lado de la app oficial, sin reemplazarla.
 
 ## Descargar
@@ -36,7 +37,7 @@ Android 10 o superior, arm64 (teléfonos de 2019 en adelante, aproximadamente).
 1. Copia las carpetas del juego `Data`, `DataEP1`, `SporebinEP1` y `bp1content` de tu instalación de Spore a
    `Almacenamiento interno/Spore` en el teléfono (debe quedar `/sdcard/Spore/SporebinEP1/SporeApp.exe`).
 2. Instala el APK, ábrelo y permite el "Acceso a todos los archivos".
-3. El juego usa el idioma del teléfono; puedes elegir otro en Ajustes (botón redondo → engranaje) → Language.
+3. El juego usa el idioma del teléfono; puedes elegir otro en Ajustes (botón redondo → engranaje) → Idioma.
 
 Las partidas guardadas y los ajustes de esta app van en `Android/data/com.sporere.game.freed/files`, aparte de los
 de la app oficial.
@@ -53,7 +54,7 @@ funcionan.
 - Los controles táctiles cambian según la etapa (con una pista corta): tocar = clic, mantener = clic derecho, un dedo
   gira la cámara (criatura, espacio) o mueve el mapa (tribu, civilización), dos dedos giran, pellizcar hace zoom, y en
   la etapa de criatura hay un joystick y botones de habilidades. Todos los botones se pueden mover
-  (Ajustes → Layout).
+  (Ajustes → Mover botones).
 - Ajustes: resolución, nitidez, límite de FPS 30-120, calidad, tamaño de pantalla, tamaño y opacidad de los botones.
 - Problemas conocidos: todavía no aparece Aventuras Espaciales en el menú principal, las excepciones de C++ del juego
   no se manejan (algunos perfiles con mods se cierran), y "Salir" en el menú de pausa cierra la app (es la salida
