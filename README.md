@@ -16,10 +16,15 @@ apoyarlo en Patreon: **[patreon.com/VinTeRuS](https://www.patreon.com/cw/VinTeRu
 - **Teclado del teléfono dentro del juego**: el botón ⌨ abre el teclado y lo que escribes llega al juego (nombres
   de criaturas, planetas, la consola de trucos). Funcionan tildes, ñ, dictado por voz y la tecla de borrar. Sin
   autocorrector, para que no cambie los nombres inventados. Un teclado físico también sigue funcionando.
-- **Tamaño de pantalla** (Ajustes ⚙ → Gráficos → *Tamaño de pantalla*): achica un poco la imagen del juego, centrada y sin
-  deformarla, para que nada quede debajo de las esquinas redondeadas o del agujero de la cámara. Se aplica al
+- **Tamaño de pantalla** (Ajustes ⚙ → Gráficos → *Tamaño de pantalla*): achica la imagen del juego de 100 % a 80 %,
+  de uno en uno, centrada y sin deformarla, para que nada quede debajo de las esquinas redondeadas o del agujero de la
+  cámara. El borde que queda es negro puro (en pantallas OLED se ve como el marco del teléfono). Se aplica al
   reiniciar el juego.
-- **Ajustes y controles en español** cuando el teléfono está en español.
+- **Botones + y − en los editores**: hacen lo de la rueda del ratón. Toca una pieza (o la columna) de la criatura y
+  usa + / − para agrandarla o achicarla.
+- **Ajustes y controles en español** cuando el teléfono está en español: panel de ajustes, botones, pistas de cada
+  etapa y la pantalla de archivos del juego. Las palabras largas se achican para caber en los botones.
+- **Crédito más discreto**: el texto "Spore Android port by VinTeRuS" de la esquina es más pequeño y transparente.
 - **Nombre propio**: se instala como **Spore Collection GOG**, al lado de la app oficial, sin reemplazarla.
 
 ## Descargar
@@ -55,6 +60,7 @@ funcionan.
   gira la cámara (criatura, espacio) o mueve el mapa (tribu, civilización), dos dedos giran, pellizcar hace zoom, y en
   la etapa de criatura hay un joystick y botones de habilidades. Todos los botones se pueden mover
   (Ajustes → Mover botones).
+- Los editores tienen Deshacer, Rehacer y + / − para el tamaño de las piezas.
 - Ajustes: resolución, nitidez, límite de FPS 30-120, calidad, tamaño de pantalla, tamaño y opacidad de los botones.
 - Problemas conocidos: todavía no aparece Aventuras Espaciales en el menú principal, las excepciones de C++ del juego
   no se manejan (algunos perfiles con mods se cierran), y "Salir" en el menú de pausa cierra la app (es la salida
