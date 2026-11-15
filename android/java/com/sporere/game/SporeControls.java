@@ -547,12 +547,80 @@ public class SporeControls extends View {
         return sMode.value() == 1;
     }
 
+    /** The phone keyboard is open for the game's text fields (names, chat, cheat console). */
+    private boolean typing;
+
     private void toggleKeyboard() {
         InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm == null) return;
+        if (typing && keyboardShown()) {
+            typing = false;
+            imm.hideSoftInputFromWindow(getWindowToken(), 0);
+            imm.restartInput(this);
+            return;
+        }
+        typing = true;
         setFocusableInTouchMode(true);
         requestFocus();
-        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+        imm.restartInput(this);  // a fresh connection: the keyboard starts from an empty text
+        imm.showSoftInput(this, 0);
+    }
+
+    private boolean keyboardShown() {
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
+            android.view.WindowInsets insets = getRootWindowInsets();
+            if (insets != null) return insets.isVisible(android.view.WindowInsets.Type.ime());
+        }
+        return typing;
+    }
+
+    // ---- the phone keyboard ----
+    // Without these the keyboard opened on this view had nothing to type into: Android sends typed text only to a view
+    // that says it is a text editor and hands out an InputConnection. The connection is SDL's (SporeText), which turns
+    // the keyboard's text into SDL text input (WM_CHAR for the game) and backspaces.
+
+    @Override
+    public boolean onCheckIsTextEditor() {
+        return typing;
+    }
+
+    @Override
+    public android.view.inputmethod.InputConnection onCreateInputConnection(android.view.inputmethod.EditorInfo out) {
+        if (!typing) return null;
+        // No suggestions: creature and planet names are made up, autocorrect would change them. Voice typing still works.
+        out.inputType = android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+                | android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS;
+        // No full-screen keyboard in landscape: the game stays visible above it.
+        out.imeOptions = android.view.inputmethod.EditorInfo.IME_FLAG_NO_EXTRACT_UI
+                | android.view.inputmethod.EditorInfo.IME_FLAG_NO_FULLSCREEN
+                | android.view.inputmethod.EditorInfo.IME_ACTION_DONE;
+        return org.libsdl.app.SporeText.connection(this);
+    }
+
+    // Keys reach the focused view: once the keyboard button gave this view the focus, a physical keyboard's keys (and
+    // the keys the phone keyboard sends, like Enter and backspace on an empty text) come here instead of SDL's surface.
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        return forwardKey(keyCode, event) || super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        return forwardKey(keyCode, event) || super.onKeyUp(keyCode, event);
+    }
+
+    private boolean forwardKey(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_BACK:  // the activity's back (the game's menu)
+            case KeyEvent.KEYCODE_VOLUME_UP:
+            case KeyEvent.KEYCODE_VOLUME_DOWN:
+            case KeyEvent.KEYCODE_VOLUME_MUTE:
+            case KeyEvent.KEYCODE_POWER:
+            case KeyEvent.KEYCODE_HOME:
+                return false;
+            default:
+                return SDLActivity.handleKeyEvent(this, keyCode, event, null);
+        }
     }
 
     /** The pointer position a one-finger gesture acts at: the finger, or the touchpad cursor. */
