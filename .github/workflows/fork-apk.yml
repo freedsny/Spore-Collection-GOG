@@ -64,9 +64,9 @@ jobs:
           {
             echo "APK del fork (commit ${GITHUB_SHA::7}), librerías nativas de VinTeRuS/spore-re $UPSTREAM_TAG."
             echo
-            echo "- \`spore.apk\`: Vulkan 1.3 (la mayoría de teléfonos)."
-            echo "- \`spore-vk11.apk\`: Vulkan 1.1 (GPUs viejas)."
+            echo "- \`Spore-Collection-GOG.apk\`: Vulkan 1.3 (la mayoría de teléfonos)."
+            echo "- \`Spore-Collection-GOG-vk11.apk\`: Vulkan 1.1 (GPUs viejas)."
             echo
             echo "Se instala al lado de la app oficial (otro nombre: com.sporere.game.freed)."
           } > notes.md
-          gh release create "$tag" build/fork-apk/*.apk --title "Fork $tag" --notes-file notes.md --target "$GITHUB_SHA"
+          gh release create "$tag" build/fork-apk/*.apk --title "Spore Collection GOG $tag" --notes-file notes.md --target "$GITHUB_SHA"

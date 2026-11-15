@@ -8,7 +8,7 @@
 # The APK gets its own application id (APP_ID) and is signed with this fork's key, so it installs next to the official
 # app instead of replacing it. Its saves and settings live in Android/data/<APP_ID>/files.
 #
-# Usage: android/build-fork-apk.sh official.apk [...]     -> build/fork-apk/<same file name>
+# Usage: android/build-fork-apk.sh official.apk [...]     -> build/fork-apk/$APK_PREFIX[-vk11].apk
 # Needs: Android SDK (platform android-35, build-tools 35+), SDL2 sources (SDL_SRC, the tag of android/build-deps.sh)
 set -euo pipefail
 
@@ -19,7 +19,8 @@ PLATFORM_JAR=${PLATFORM_JAR:-$SDK/platforms/android-35/android.jar}
 SDL_SRC=${SDL_SRC:-$ROOT/build/sdl}
 KEYSTORE=${KEYSTORE:-$ROOT/android/fork.keystore}
 APP_ID=${APP_ID:-com.sporere.game.freed}
-APP_LABEL=${APP_LABEL:-Spore · VinTeRuS (Freed)}
+APP_LABEL=${APP_LABEL:-Spore Collection GOG}
+APK_PREFIX=${APK_PREFIX:-Spore-Collection-GOG}  # file names: <prefix>.apk, <prefix>-vk11.apk
 
 [ $# -gt 0 ] || { echo "usage: $0 official.apk [...]" >&2; exit 1; }
 
@@ -45,6 +46,10 @@ sed "s/android:label=\"Spore · VinTeRuS\"/android:label=\"$APP_LABEL\"/" "$ROOT
 
 for official in "$@"; do
     name=$(basename "$official")
+    case "$name" in
+        *vk11*) out=$APK_PREFIX-vk11.apk ;;
+        *) out=$APK_PREFIX.apk ;;
+    esac
     pkg=$WORK/pkg-$name
     rm -rf "$pkg"
     mkdir -p "$pkg"
@@ -54,6 +59,6 @@ for official in "$@"; do
     (cd "$pkg" && zip -q -r "$WORK/unsigned-$name" classes.dex lib)
     "$BUILD_TOOLS/zipalign" -P 16 -f 4 "$WORK/unsigned-$name" "$WORK/aligned-$name"
     "$BUILD_TOOLS/apksigner" sign --ks "$KEYSTORE" --ks-pass pass:android --key-pass pass:android \
-        --out "$OUT/$name" "$WORK/aligned-$name"
-    ls -la "$OUT/$name"
+        --out "$OUT/$out" "$WORK/aligned-$name"
+    ls -la "$OUT/$out"
 done

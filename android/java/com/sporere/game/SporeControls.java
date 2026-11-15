@@ -136,6 +136,10 @@ public class SporeControls extends View {
             true, false);
     private final Setting sShowFps = new Setting("Show FPS", "Показывать FPS", "ui_fps", OFF_ON, new int[] {0, 1}, 0,
             false, false);
+    // The game's picture smaller than the screen, black around it: nothing under rounded corners or the camera hole.
+    // SporeActivity sizes SDL's surface with it on start (screenScale).
+    private final Setting sScreen = new Setting("Screen size", "Размер экрана", "screen_scale",
+            new String[] {"100%", "97%", "94%", "91%", "88%"}, new int[] {100, 97, 94, 91, 88}, 100, true, false);
     private final Setting sMode = new Setting("Touch mode", "Касания", "ui_touchpad",
             tr(new String[] {"Direct", "Touchpad"}, new String[] {"Прямые", "Тачпад"}), new int[] {0, 1}, 0, false,
             false);
@@ -156,10 +160,33 @@ public class SporeControls extends View {
     private final Setting sVibrate = new Setting("Vibration", "Вибрация", "ui_vibrate", OFF_ON, new int[] {0, 1}, 1,
             false, false);
     // two columns in the panel: graphics, controls
-    private final Setting[] graphics = {sQuality, sResolution, sSharpen, sFps, sGpuSync, sShowFps};
+    private final Setting[] graphics = {sQuality, sResolution, sScreen, sSharpen, sFps, sGpuSync, sShowFps};
     private final Setting[] controlsSettings = {sLanguage, sMode, sSpeed, sScale, sAlpha, sVibrate};
-    private final Setting[] settings = {sQuality, sResolution, sSharpen, sFps, sGpuSync, sShowFps, sLanguage, sMode,
-            sSpeed, sScale, sAlpha, sVibrate};
+    private final Setting[] settings = {sQuality, sResolution, sScreen, sSharpen, sFps, sGpuSync, sShowFps, sLanguage,
+            sMode, sSpeed, sScale, sAlpha, sVibrate};
+
+    /** The Screen size setting in percent (sporere.ini, as the panel writes it), for SporeActivity on start. */
+    static int screenScale(Context context) {
+        File dir = context.getExternalFilesDir(null);
+        String v = readIniFrom(dir == null ? null : new File(dir, "sporere.ini"), "screen_scale");
+        try {
+            int pct = v == null ? 100 : Integer.parseInt(v);
+            return Math.max(50, Math.min(100, pct));
+        } catch (NumberFormatException e) {
+            return 100;
+        }
+    }
+
+    // Where SDL's surface sits in this view when Screen size made it smaller (SporeActivity.fitSurface): touches are
+    // given to SDL in the surface's own pixels. Zero size: the surface fills the view.
+    private static volatile float surfLeft, surfTop, surfWidth, surfHeight;
+
+    static void setSurfaceRect(float left, float top, float width, float height) {
+        surfLeft = left;
+        surfTop = top;
+        surfWidth = width;
+        surfHeight = height;
+    }
     private final RectF[] settingRects = new RectF[settings.length];
     private boolean engineChanged;
 
@@ -466,6 +493,11 @@ public class SporeControls extends View {
 
     // ---- input to SDL ----
     private static void mouse(int buttons, int action, float x, float y) {
+        float w = surfWidth, h = surfHeight;
+        if (w > 0 && h > 0) {  // a smaller picture: into its pixels, a touch on the black border at its edge
+            x = Math.max(0, Math.min(w - 1, x - surfLeft));
+            y = Math.max(0, Math.min(h - 1, y - surfTop));
+        }
         SDLActivity.onNativeMouse(buttons, action, x, y, false);
     }
 
@@ -1281,6 +1313,13 @@ public class SporeControls extends View {
         float row = 36 * density, rowGap = 6 * density, pad = 16 * density, header = 56 * density;
         float section = 26 * density, footer = 62 * density;
         int rows = Math.max(graphics.length, controlsSettings.length);
+        // rows a bit lower when the panel would not fit the screen's height (wide phones in landscape)
+        float avail = getHeight() - 12 * density - (header + section + footer);
+        if (rows * (row + rowGap) > avail && avail > 0) {
+            float k = avail / (rows * (row + rowGap));
+            row *= k;
+            rowGap *= k;
+        }
         float h = header + section + rows * (row + rowGap) + footer;
         float left = (getWidth() - w) / 2, top = Math.max(6 * density, (getHeight() - h) / 2);
         panel.set(left, top, left + w, top + h);

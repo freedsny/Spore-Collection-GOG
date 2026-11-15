@@ -105,6 +105,14 @@ public class SporeActivity extends SDLActivity {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);  // no dimming while playing
         preferFastDisplayMode();
+        screenScale = SporeControls.screenScale(this);
+        if (screenScale < 100 && mLayout != null) {
+            // sized before the first layout (from the display), so the surface does not start full screen and shrink
+            android.util.DisplayMetrics real = new android.util.DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getRealMetrics(real);
+            fitSurfaceTo(Math.max(real.widthPixels, real.heightPixels), Math.min(real.widthPixels, real.heightPixels));
+            mLayout.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> mLayout.post(this::fitSurface));
+        }
         // Spore is played with the mouse: SporeControls turns touches into mouse input (tap, drag, long press,
         // two-finger camera, pinch zoom) and adds Esc, keyboard, FPS and settings buttons.
         SporeControls controls = new SporeControls(this);
@@ -129,6 +137,37 @@ public class SporeActivity extends SDLActivity {
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP | Gravity.END);
         addContentView(mark, lp);
+    }
+
+    /** Settings -> Screen size, in percent (read on start). */
+    private int screenScale = 100;
+
+    /**
+     * Screen size below 100%: SDL's surface (the game's picture) gets that share of the screen, centered, black around
+     * it, so rounded corners and the camera hole cover nothing. It keeps the aspect ratio the engine renders at (the
+     * whole display's, main.cpp), so the picture is not stretched. The touch controls map touches into it.
+     */
+    private void fitSurface() {
+        if (mLayout != null) fitSurfaceTo(mLayout.getWidth(), mLayout.getHeight());
+    }
+
+    private void fitSurfaceTo(int pw, int ph) {
+        if (mSurface == null || pw <= 0 || ph <= 0) return;
+        android.util.DisplayMetrics real = new android.util.DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getRealMetrics(real);
+        float aspect = Math.max(real.widthPixels, real.heightPixels)
+                / (float) Math.max(1, Math.min(real.widthPixels, real.heightPixels));  // landscape
+        float w = pw * screenScale / 100f, h = ph * screenScale / 100f;
+        if (w / h > aspect) w = h * aspect;
+        else h = w / aspect;
+        int sw = Math.round(w), sh = Math.round(h);
+        int left = (pw - sw) / 2, top = (ph - sh) / 2;
+        SporeControls.setSurfaceRect(left, top, sw, sh);
+        ViewGroup.LayoutParams cur = mSurface.getLayoutParams();
+        if (cur != null && cur.width == sw && cur.height == sh) return;
+        android.widget.RelativeLayout.LayoutParams lp = new android.widget.RelativeLayout.LayoutParams(sw, sh);
+        lp.addRule(android.widget.RelativeLayout.CENTER_IN_PARENT);
+        mSurface.setLayoutParams(lp);
     }
 
     @Override
