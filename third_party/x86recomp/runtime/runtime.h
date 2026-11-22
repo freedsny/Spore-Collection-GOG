@@ -172,6 +172,9 @@ static inline uint32_t Pop32(Ctx* c) { uint32_t v = StackR32(c->esp); c->esp += 
 #define RRELOAD (r_eax = c->eax, r_ecx = c->ecx, r_edx = c->edx, r_ebx = c->ebx, r_esp = c->esp, r_ebp = c->ebp, \
                  r_esi = c->esi, r_edi = c->edi, rf.cf = c->cf, rf.zf = c->zf, rf.sf = c->sf, rf.of = c->of, \
                  rf.pf = c->pf, rf.df = c->df, rf.af = c->af)
+/* Before a jump into another function: the local flags back to the context (that function's RLOCALS reads them). */
+#define RFLAGS_OUT (c->cf = rf.cf, c->zf = rf.zf, c->sf = rf.sf, c->of = rf.of, c->pf = rf.pf, c->df = rf.df, \
+                    c->af = rf.af)
 static inline void LPush32(uint32_t* esp, uint32_t v) { *esp -= 4; StackW32(*esp, v); }
 static inline uint32_t LPop32(uint32_t* esp) { uint32_t v = StackR32(*esp); *esp += 4; return v; }
 

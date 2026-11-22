@@ -293,7 +293,26 @@ void SelectVulkanDriver() {
         size_t slash = path.rfind('/');
         drivers.push_back({hooks, path.substr(0, slash + 1), path.substr(slash + 1), true});
     }
-    for (const char* file : {"libvulkan_freedreno.so", "libvulkan_freedreno_next.so"}) {
+    // Adreno 8xx: the newer bundled Turnip first (26.2 drew only noise on an Adreno 840), with UBWC off by default
+    // (a frame the display reads with the wrong compression/tiling looks exactly like that noise). turnip_debug in
+    // sporere.ini sets TU_DEBUG for any Adreno ("" to clear).
+    const bool a8xx = model.compare(0, 7, "Adreno8") == 0;
+    const std::string tu_debug = Setting("turnip_debug", a8xx ? "noubwc" : "");
+    if (!tu_debug.empty()) {
+        setenv("TU_DEBUG", tu_debug.c_str(), 1);
+        Log("vulkan: TU_DEBUG=%s", tu_debug.c_str());
+    }
+    // Adreno 7xx: Turnip's frames flickered in screen recordings (S23 Ultra, Adreno 740) until the UBWC flag hint was
+    // on, as emulators set it. turnip_features in sporere.ini sets FD_DEV_FEATURES for any Adreno ("" to clear).
+    const bool a7xx = model.compare(0, 7, "Adreno7") == 0;
+    const std::string fd_features = Setting("turnip_features", a7xx ? "enable_tp_ubwc_flag_hint=1" : "");
+    if (!fd_features.empty()) {
+        setenv("FD_DEV_FEATURES", fd_features.c_str(), 1);
+        Log("vulkan: FD_DEV_FEATURES=%s", fd_features.c_str());
+    }
+    const char* order_new[] = {"libvulkan_freedreno_next.so", "libvulkan_freedreno.so"};
+    const char* order_old[] = {"libvulkan_freedreno.so", "libvulkan_freedreno_next.so"};
+    for (const char* file : a8xx ? order_new : order_old) {
         if (access((hooks + file).c_str(), F_OK) == 0) drivers.push_back({hooks, hooks, file, false});
     }
     PFN_vkGetInstanceProcAddr gipa = nullptr;

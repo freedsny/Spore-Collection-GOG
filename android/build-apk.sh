@@ -45,7 +45,12 @@ for abi in "${ABIS[@]}"; do
     if [ -e "$ANDROID_BUILD/$abi/libturnipprobe.so" ]; then
         cp "$ANDROID_BUILD/$abi/libturnipprobe.so" "$OUT/pkg/lib/$abi/"
     fi
-    if [ -e "$ANDROID_BUILD/$abi-v80/libmain.so" ]; then
+    # required: without it the app does not start on those phones ("libmain_v80.so not found")
+    if [ "$abi" = arm64-v8a ]; then
+        if [ ! -e "$ANDROID_BUILD/$abi-v80/libmain.so" ]; then
+            echo "missing $ANDROID_BUILD/$abi-v80/libmain.so (the ARMv8.0 build, see above)" >&2
+            exit 1
+        fi
         cp "$ANDROID_BUILD/$abi-v80/libmain.so" "$OUT/pkg/lib/$abi/libmain_v80.so"
     fi
     # Adreno: Turnip and the adrenotools hooks (android/build-turnip.sh), when built

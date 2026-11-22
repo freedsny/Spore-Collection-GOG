@@ -93,8 +93,8 @@ public class SporeControls extends View {
         }
     }
 
-    // Spanish (the phone's language es-*): the English texts of the controls and the settings, translated. Russian
-    // keeps its own texts (ru()); any other language stays English.
+    // Spanish (the phone's language es-*): the English texts of the controls and the settings, translated
+    // (Spore Collection GOG). Russian keeps its own texts (ru()); any other language stays English.
     static boolean es() {
         return "es".equals(Locale.getDefault().getLanguage());
     }
@@ -104,7 +104,7 @@ public class SporeControls extends View {
     static {
         ES.put("Quality", "Calidad");
         ES.put("Resolution", "Resolución");
-        ES.put("Screen size", "Tamaño de pantalla");
+        ES.put("Screen", "Pantalla");
         ES.put("FPS limit", "Límite de FPS");
         ES.put("Sharpness", "Nitidez");
         ES.put("Wait for GPU", "Esperar a la GPU");
@@ -128,11 +128,16 @@ public class SporeControls extends View {
         ES.put("Touchpad", "Touchpad");
         ES.put("Slow", "Lento");
         ES.put("Normal", "Normal");
+        ES.put("Full", "Completa");
+        ES.put("16:9", "16:9");
+        ES.put("Safe area", "Sin bordes");
         ES.put("Order", "Orden");
         ES.put("Select", "Elegir");
+        ES.put("LMB", "Clic");
         ES.put("Undo", "Deshacer");
         ES.put("Redo", "Rehacer");
         ES.put("Stages", "Etapas");
+        ES.put("Cheats", "Trucos");
         ES.put("Restart the game to apply the * settings", "Reinicia el juego para aplicar los ajustes con *");
         ES.put("Stick", "Joystick");
         ES.put("Jump", "Saltar");
@@ -149,8 +154,8 @@ public class SporeControls extends View {
         ES.put("Cell: tap or drag to swim, pinch to zoom", "Célula: toca o arrastra para nadar, pellizca para zoom");
         ES.put("Creature: tap to walk / act, drag to turn the camera, stick to walk, 1-4 abilities", "Criatura: toca para caminar / actuar, arrastra para girar la cámara, joystick para caminar, 1-4 habilidades");
         ES.put("Tap to select, hold to order, drag to move the map, two fingers turn, Select for a box", "Toca para elegir, mantén para dar órdenes, arrastra para mover el mapa, dos dedos giran, Elegir para un recuadro");
-        ES.put("Space: hold a finger to fly there, tap to pick, two fingers turn, +/- altitude", "Espacio: mantén un dedo para volar hacia allí, toca para elegir, dos dedos giran, +/- altura");
-        ES.put("Editor: drag parts, two fingers turn the camera, pinch to zoom, tap a part and +/- to resize it", "Editor: arrastra las piezas, dos dedos giran la cámara, pellizca para zoom; toca una pieza y usa + / − para cambiar su tamaño");
+        ES.put("Space: stick flies, hold a finger to fly there, LMB to hold a tool, two fingers turn, +/- altitude", "Espacio: el joystick vuela, mantén un dedo para volar hacia allí, Clic para usar una herramienta, dos dedos giran, +/- altura");
+        ES.put("Editor: drag parts, two fingers turn the camera, pinch to zoom, tap a part and \u25b2/\u25bc to resize it", "Editor: arrastra las piezas, dos dedos giran la cámara, pellizca para zoom; toca una pieza y usa \u25b2/\u25bc para cambiar su tamaño");
         ES.put("Game files not found", "No se encontraron los archivos del juego");
         ES.put("Some game files are missing", "Faltan algunos archivos del juego");
         ES.put("Copy these folders from your SPORE folder on the PC (GOG version, with Galactic Adventures): SporebinEP1, Data, DataEP1 and bp1content (about 6 GB), to one of these places:", "Copia estas carpetas de tu carpeta de SPORE en el PC (versión GOG, con Aventuras Galácticas): SporebinEP1, Data, DataEP1 y bp1content (unos 6 GB), a uno de estos lugares:");
@@ -216,25 +221,13 @@ public class SporeControls extends View {
     // Off: the CPU prepares the next frame while the GPU draws (smoother on most phones); On: the game's own wait.
     private final Setting sGpuSync = new Setting("Wait for GPU", "Ждать GPU", "gpu_sync", OFF_ON, new int[] {0, 1}, 0,
             true, false);
+    // Full: the whole screen; 16:9: bars at the sides of a long phone; Safe area: clear of the camera cutout and the
+    // rounded corners, which cut off the menus' corners otherwise.
+    private final Setting sScreen = new Setting("Screen", "Экран", "screen_fit",
+            tr(new String[] {"Full", "16:9", "Safe area"}, new String[] {"Весь", "16:9", "Без углов"}),
+            new int[] {0, 1, 2}, 0, true, false);
     private final Setting sShowFps = new Setting("Show FPS", "Показывать FPS", "ui_fps", OFF_ON, new int[] {0, 1}, 0,
             false, false);
-    // The game's picture smaller than the screen, black around it: nothing under rounded corners or the camera hole.
-    // SporeActivity sizes SDL's surface with it on start (screenScale).
-    private final Setting sScreen = new Setting("Screen size", "Размер экрана", "screen_scale",
-            percents(100, 80), percentValues(100, 80), 100, true, false);
-
-    /** "100%", "99%", ... down to low: one step per percent. */
-    private static String[] percents(int high, int low) {
-        String[] out = new String[high - low + 1];
-        for (int i = 0; i < out.length; ++i) out[i] = (high - i) + "%";
-        return out;
-    }
-
-    private static int[] percentValues(int high, int low) {
-        int[] out = new int[high - low + 1];
-        for (int i = 0; i < out.length; ++i) out[i] = high - i;
-        return out;
-    }
     private final Setting sMode = new Setting("Touch mode", "Касания", "ui_touchpad",
             tr(new String[] {"Direct", "Touchpad"}, new String[] {"Прямые", "Тачпад"}), new int[] {0, 1}, 0, false,
             false);
@@ -255,33 +248,10 @@ public class SporeControls extends View {
     private final Setting sVibrate = new Setting("Vibration", "Вибрация", "ui_vibrate", OFF_ON, new int[] {0, 1}, 1,
             false, false);
     // two columns in the panel: graphics, controls
-    private final Setting[] graphics = {sQuality, sResolution, sScreen, sSharpen, sFps, sGpuSync, sShowFps};
+    private final Setting[] graphics = {sQuality, sResolution, sSharpen, sFps, sGpuSync, sScreen, sShowFps};
     private final Setting[] controlsSettings = {sLanguage, sMode, sSpeed, sScale, sAlpha, sVibrate};
-    private final Setting[] settings = {sQuality, sResolution, sScreen, sSharpen, sFps, sGpuSync, sShowFps, sLanguage,
-            sMode, sSpeed, sScale, sAlpha, sVibrate};
-
-    /** The Screen size setting in percent (sporere.ini, as the panel writes it), for SporeActivity on start. */
-    static int screenScale(Context context) {
-        File dir = context.getExternalFilesDir(null);
-        String v = readIniFrom(dir == null ? null : new File(dir, "sporere.ini"), "screen_scale");
-        try {
-            int pct = v == null ? 100 : Integer.parseInt(v);
-            return Math.max(50, Math.min(100, pct));
-        } catch (NumberFormatException e) {
-            return 100;
-        }
-    }
-
-    // Where SDL's surface sits in this view when Screen size made it smaller (SporeActivity.fitSurface): touches are
-    // given to SDL in the surface's own pixels. Zero size: the surface fills the view.
-    private static volatile float surfLeft, surfTop, surfWidth, surfHeight;
-
-    static void setSurfaceRect(float left, float top, float width, float height) {
-        surfLeft = left;
-        surfTop = top;
-        surfWidth = width;
-        surfHeight = height;
-    }
+    private final Setting[] settings = {sQuality, sResolution, sSharpen, sFps, sGpuSync, sScreen, sShowFps, sLanguage, sMode,
+            sSpeed, sScale, sAlpha, sVibrate};
     private final RectF[] settingRects = new RectF[settings.length];
     private boolean engineChanged;
 
@@ -291,9 +261,9 @@ public class SporeControls extends View {
     // ---- layout editor ----
     // Every on-screen control can be moved: the menu handle, the stick, the jump button and six slots for the
     // stage's action buttons (1-4, Order, Select, Undo...). Places are fractions of the screen in prefs "lay_*".
-    private static final String[] SLOT_IDS = {"slot0", "slot1", "slot2", "slot3", "slot4", "slot5"};
+    private static final String[] SLOT_IDS = {"slot0", "slot1", "slot2", "slot3", "slot4", "slot5", "slot6"};
     private static final float[][] SLOT_DEFAULTS = {{0.94f, 0.30f}, {0.94f, 0.46f}, {0.94f, 0.62f}, {0.85f, 0.38f},
-            {0.85f, 0.54f}, {0.85f, 0.70f}};
+            {0.85f, 0.54f}, {0.85f, 0.70f}, {0.85f, 0.22f}};
     private boolean editLayout;
     private String editing;  // the element being dragged
     private final RectF editDone = new RectF(), editReset = new RectF();
@@ -305,6 +275,14 @@ public class SporeControls extends View {
 
     private float layY(String id, float def) {
         return prefs.getFloat("lay_" + id + "_y", def);
+    }
+
+    private float fpsDefX() {
+        return getWidth() > 0 ? (8 * density + surfaceX) / getWidth() : 0.02f;
+    }
+
+    private float fpsDefY() {
+        return getHeight() > 0 ? (getHeight() - 10 * density) / getHeight() : 0.97f;
     }
 
     private float scale() {
@@ -340,6 +318,7 @@ public class SporeControls extends View {
 
     void setStick(SporeStick s) {
         stick = s;
+        s.under = this;
     }
 
     // ---- per-stage layout ----
@@ -351,6 +330,8 @@ public class SporeControls extends View {
     private final List<Button> actions = new ArrayList<>();
     private boolean rightTaps;  // Order button: one-finger taps are right clicks (orders to the selected units)
     private boolean boxArmed;   // Select button: the next one-finger drag is a left drag (box selection)
+    private boolean holdLeft;   // space, LMB button: holding a finger holds the left button (beams, abduction,
+                                // terraforming tools) instead of flying
     private String hint;        // what the gestures do in this stage, shown for a few seconds after it starts
     private final Runnable hideHint = () -> {
         hint = null;
@@ -369,7 +350,7 @@ public class SporeControls extends View {
      * "use the right mouse button to fly"): a one-finger drag holds it with the cursor under the finger.
      */
     private boolean dragFlies() {
-        return !camLock && !boxArmed && stage == Stage.SPACE;
+        return !camLock && !boxArmed && !holdLeft && stage == Stage.SPACE;
     }
 
     /**
@@ -414,11 +395,11 @@ public class SporeControls extends View {
                 return ru ? "Тап — выбрать, удержание — приказ, палец — двигать карту, два пальца — поворот, «Выбор» — рамка"
                           : tx("Tap to select, hold to order, drag to move the map, two fingers turn, Select for a box");
             case SPACE:
-                return ru ? "Космос: держи палец — лететь туда, тап — выбрать, два пальца — камера, +/− — высота"
-                          : tx("Space: hold a finger to fly there, tap to pick, two fingers turn, +/- altitude");
+                return ru ? "Космос: стик — полёт, держи палец — лететь туда, ЛКМ — держать инструмент, два пальца — камера, +/− — высота"
+                          : tx("Space: stick flies, hold a finger to fly there, LMB to hold a tool, two fingers turn, +/- altitude");
             case EDITOR:
-                return ru ? "Редактор: тяни детали пальцем, два пальца — камера, щипок — зум, тап по детали и +/− — размер"
-                          : tx("Editor: drag parts, two fingers turn the camera, pinch to zoom, tap a part and +/- to resize it");
+                return ru ? "Редактор: тяни детали пальцем, два пальца — камера, щипок — зум, коснись детали и \u25b2/\u25bc — размер"
+                          : tx("Editor: drag parts, two fingers turn the camera, pinch to zoom, tap a part and \u25b2/\u25bc to resize it");
             default:
                 return null;
         }
@@ -457,6 +438,7 @@ public class SporeControls extends View {
         stage = s;
         rightTaps = false;
         boxArmed = false;
+        holdLeft = false;
         actions.clear();
         hint = hintFor(s);
         handler.removeCallbacks(hideHint);
@@ -474,21 +456,22 @@ public class SporeControls extends View {
                 for (int k = 1; k <= 4; ++k) actions.add(keyButton(String.valueOf(k), KeyEvent.KEYCODE_0 + k));
                 actions.add(keysButton("+", KeyEvent.KEYCODE_EQUALS, KeyEvent.KEYCODE_NUMPAD_ADD));
                 actions.add(keysButton("\u2212", KeyEvent.KEYCODE_MINUS, KeyEvent.KEYCODE_NUMPAD_SUBTRACT));
+                actions.add(new Button(ru() ? "ЛКМ" : tx("LMB"), this::toggleHoldLeft));
                 break;
             case EDITOR:
                 actions.add(new Button(tx("Undo"), SporeControls::undo));
                 actions.add(new Button(tx("Redo"), SporeControls::redo));
-                // The editors resize the part (or spine bone) under the mouse with the wheel. The mouse stays where a
-                // finger was lifted: tap the part, then + / - (pinching turns the wheel too, but moves the camera).
-                actions.add(new Button("+", () -> wheel(1)));
-                actions.add(new Button("\u2212", () -> wheel(-1)));
+                // the mouse wheel over a part resizes it: tap the part (the cursor stays there), then these
+                actions.add(new Button("\u25b2", () -> wheel(1)));
+                actions.add(new Button("\u25bc", () -> wheel(-1)));
                 break;
             default:
                 break;
         }
         if (stick != null) {
+            stick.useArrows(s == Stage.SPACE);
             // tribe and civilization: the map moves with a finger, the stick only when asked for (WASD button)
-            boolean show = prefs.getBoolean("stick2_" + s.name(), s == Stage.CREATURE);
+            boolean show = prefs.getBoolean("stick3_" + s.name(), s == Stage.CREATURE || s == Stage.SPACE);
             if (show) stick.setVisibility(View.VISIBLE);
             else if (stick.getVisibility() == View.VISIBLE) stick.hide();
         }
@@ -516,6 +499,11 @@ public class SporeControls extends View {
         invalidate();
     }
 
+    private void toggleHoldLeft() {
+        holdLeft = !holdLeft;
+        invalidate();
+    }
+
     private void armBox() {
         boxArmed = !boxArmed;
         invalidate();
@@ -535,6 +523,7 @@ public class SporeControls extends View {
     private long lastTapTime;
     private boolean longPressFired, moved;
     private final Runnable longPress = this::onLongPress;
+    private boolean holdDrag;  // tribe, civilization: the finger was held still, so a drag now drags with the left button
     private final Runnable leftDown = this::startLeft;
 
     // ---- overlay ----
@@ -570,16 +559,18 @@ public class SporeControls extends View {
         text.setTextAlign(Paint.Align.CENTER);
         handleFx = prefs.getFloat("ui_handle_x", 0.5f);
         handleFy = prefs.getFloat("ui_handle_y", 0.0f);
+        applyScreen(context);
         buttons.add(new Button("Esc", () -> key(KeyEvent.KEYCODE_ESCAPE)));
         buttons.add(new Button("WASD", () -> {
             if (stick == null) return;
             boolean show = stick.getVisibility() != View.VISIBLE;
             if (show) stick.setVisibility(View.VISIBLE);
             else stick.hide();
-            prefs.edit().putBoolean("stick2_" + stage.name(), show).apply();
+            prefs.edit().putBoolean("stick3_" + stage.name(), show).apply();
             invalidate();
         }));
         buttons.add(new Button(tx("Stages"), this::unlockStages));
+        buttons.add(new Button(ru() ? "Читы" : tx("Cheats"), () -> console(0)));
         buttons.add(new Button("⌨", this::toggleKeyboard));
         buttons.add(new Button("⚙", () -> {
             panelOpen = true;
@@ -591,13 +582,11 @@ public class SporeControls extends View {
     }
 
     // ---- input to SDL ----
+    // where the game's surface starts on the screen (the Screen setting): touches are in screen pixels
+    private static float surfaceX, surfaceY;
+
     private static void mouse(int buttons, int action, float x, float y) {
-        float w = surfWidth, h = surfHeight;
-        if (w > 0 && h > 0) {  // a smaller picture: into its pixels, a touch on the black border at its edge
-            x = Math.max(0, Math.min(w - 1, x - surfLeft));
-            y = Math.max(0, Math.min(h - 1, y - surfTop));
-        }
-        SDLActivity.onNativeMouse(buttons, action, x, y, false);
+        SDLActivity.onNativeMouse(buttons, action, x - surfaceX, y - surfaceY, false);
     }
 
     private static void key(int keycode) {
@@ -610,30 +599,30 @@ public class SporeControls extends View {
      * console (Ctrl+Shift+C) with "levels -unlock", typed as text. Meant for the galaxy / main menu.
      */
     private void unlockStages() {
-        // Ctrl and Shift stay down while the game handles the C (sent at once, the game saw a plain C: Spore's
-        // screenshot key), then the command is typed as text.
-        Runnable comboDown = () -> {
-            SDLActivity.onNativeKeyDown(KeyEvent.KEYCODE_CTRL_LEFT);
-            SDLActivity.onNativeKeyDown(KeyEvent.KEYCODE_SHIFT_LEFT);
-        };
-        Runnable comboUp = () -> {
-            SDLActivity.onNativeKeyUp(KeyEvent.KEYCODE_SHIFT_LEFT);
-            SDLActivity.onNativeKeyUp(KeyEvent.KEYCODE_CTRL_LEFT);
-        };
-        handler.post(comboDown);
-        handler.postDelayed(() -> SDLActivity.onNativeKeyDown(KeyEvent.KEYCODE_C), 150);
-        handler.postDelayed(() -> SDLActivity.onNativeKeyUp(KeyEvent.KEYCODE_C), 350);
-        handler.postDelayed(comboUp, 500);
+        console(0);
         handler.postDelayed(() -> org.libsdl.app.SporeText.type("levels -unlock"), 1000);
         handler.postDelayed(() -> SDLActivity.onNativeKeyDown(KeyEvent.KEYCODE_ENTER), 1400);
         handler.postDelayed(() -> SDLActivity.onNativeKeyUp(KeyEvent.KEYCODE_ENTER), 1550);
-        // close the console the same way
-        handler.postDelayed(comboDown, 2200);
-        handler.postDelayed(() -> SDLActivity.onNativeKeyDown(KeyEvent.KEYCODE_C), 2350);
-        handler.postDelayed(() -> SDLActivity.onNativeKeyUp(KeyEvent.KEYCODE_C), 2550);
-        handler.postDelayed(comboUp, 2700);
+        console(2200);  // close it the same way
         android.widget.Toast.makeText(getContext(), tx("All stages unlocked (cheat console: levels -unlock)"),
                 android.widget.Toast.LENGTH_LONG).show();
+    }
+
+    /**
+     * Ctrl+Shift+C opens or closes Spore's cheat console, after {@code at} ms. Ctrl and Shift stay down while the
+     * game handles the C (sent at once, the game saw a plain C: Spore's screenshot key).
+     */
+    private void console(long at) {
+        handler.postDelayed(() -> {
+            SDLActivity.onNativeKeyDown(KeyEvent.KEYCODE_CTRL_LEFT);
+            SDLActivity.onNativeKeyDown(KeyEvent.KEYCODE_SHIFT_LEFT);
+        }, at);
+        handler.postDelayed(() -> SDLActivity.onNativeKeyDown(KeyEvent.KEYCODE_C), at + 150);
+        handler.postDelayed(() -> SDLActivity.onNativeKeyUp(KeyEvent.KEYCODE_C), at + 350);
+        handler.postDelayed(() -> {
+            SDLActivity.onNativeKeyUp(KeyEvent.KEYCODE_SHIFT_LEFT);
+            SDLActivity.onNativeKeyUp(KeyEvent.KEYCODE_CTRL_LEFT);
+        }, at + 500);
     }
 
     /** Ctrl+Z: undo in the editors. */
@@ -648,6 +637,61 @@ public class SporeControls extends View {
         SDLActivity.onNativeKeyDown(KeyEvent.KEYCODE_CTRL_LEFT);
         key(KeyEvent.KEYCODE_Y);
         SDLActivity.onNativeKeyUp(KeyEvent.KEYCODE_CTRL_LEFT);
+    }
+
+    /** Sizes the game's surface for the Screen setting, before it is first laid out (the game starts at that size). */
+    private void applyScreen(Context context) {
+        if (sScreen.value() == 0 || !(context instanceof SporeActivity)) return;
+        SporeActivity a = (SporeActivity) context;
+        android.view.View surface = a.surface();
+        if (surface == null) return;
+        android.util.DisplayMetrics dm = new android.util.DisplayMetrics();
+        a.getWindowManager().getDefaultDisplay().getRealMetrics(dm);
+        int w = Math.max(dm.widthPixels, dm.heightPixels), h = Math.min(dm.widthPixels, dm.heightPixels);
+        int left = 0, top = 0, right = 0, bottom = 0;
+        if (sScreen.value() == 1) {
+            int fw = Math.min(w, h * 16 / 9), fh = Math.min(h, w * 9 / 16);
+            left = right = (w - fw) / 2;
+            top = bottom = (h - fh) / 2;
+        } else if (android.os.Build.VERSION.SDK_INT >= 30) {
+            android.view.WindowInsets in = a.getWindowManager().getCurrentWindowMetrics().getWindowInsets();
+            android.view.DisplayCutout cut = in.getDisplayCutout();
+            if (cut != null) {
+                left = cut.getSafeInsetLeft();
+                right = cut.getSafeInsetRight();
+                top = cut.getSafeInsetTop();
+                bottom = cut.getSafeInsetBottom();
+            }
+            if (android.os.Build.VERSION.SDK_INT >= 31) {
+                // a corner of radius r is clear of the image when the sides move in by r (landscape)
+                left = Math.max(left, Math.max(radius(in, android.view.RoundedCorner.POSITION_TOP_LEFT),
+                        radius(in, android.view.RoundedCorner.POSITION_BOTTOM_LEFT)));
+                right = Math.max(right, Math.max(radius(in, android.view.RoundedCorner.POSITION_TOP_RIGHT),
+                        radius(in, android.view.RoundedCorner.POSITION_BOTTOM_RIGHT)));
+            }
+        }
+        if (sScreen.value() == 2 && left == 0 && right == 0) left = right = Math.round(32 * density);  // a guess
+        android.widget.RelativeLayout.LayoutParams lp =
+                new android.widget.RelativeLayout.LayoutParams(w - left - right, h - top - bottom);
+        lp.leftMargin = left;
+        lp.topMargin = top;
+        surface.setLayoutParams(lp);
+        if (surface.getParent() instanceof android.view.View)  // the bars: black (pixels off on OLED screens)
+            ((android.view.View) surface.getParent()).setBackgroundColor(Color.BLACK);
+        surfaceX = left;
+        surfaceY = top;
+        try {  // the game picks its render size from the screen: it must use the narrower surface instead (else squashed)
+            android.system.Os.setenv("SPORERE_SURFACE_SIZE", (w - left - right) + "x" + (h - top - bottom), true);
+        } catch (android.system.ErrnoException ignored) {
+            // full-screen proportions then
+        }
+        android.util.Log.i("sporere", "screen " + sScreen.value() + ": " + (w - left - right) + "x"
+                + (h - top - bottom) + " at " + left + "," + top);
+    }
+
+    private static int radius(android.view.WindowInsets in, int pos) {
+        android.view.RoundedCorner c = in.getRoundedCorner(pos);
+        return c == null ? 0 : c.getRadius();
     }
 
     private static void wheel(float steps) {
@@ -678,80 +722,53 @@ public class SporeControls extends View {
         return sMode.value() == 1;
     }
 
-    /** The phone keyboard is open for the game's text fields (names, chat, cheat console). */
-    private boolean typing;
-
-    private void toggleKeyboard() {
-        InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm == null) return;
-        if (typing && keyboardShown()) {
-            typing = false;
-            imm.hideSoftInputFromWindow(getWindowToken(), 0);
-            imm.restartInput(this);
-            return;
-        }
-        typing = true;
-        setFocusableInTouchMode(true);
-        requestFocus();
-        imm.restartInput(this);  // a fresh connection: the keyboard starts from an empty text
-        imm.showSoftInput(this, 0);
-    }
-
-    private boolean keyboardShown() {
-        if (android.os.Build.VERSION.SDK_INT >= 30) {
-            android.view.WindowInsets insets = getRootWindowInsets();
-            if (insets != null) return insets.isVisible(android.view.WindowInsets.Type.ime());
-        }
-        return typing;
-    }
-
-    // ---- the phone keyboard ----
-    // Without these the keyboard opened on this view had nothing to type into: Android sends typed text only to a view
-    // that says it is a text editor and hands out an InputConnection. The connection is SDL's (SporeText), which turns
-    // the keyboard's text into SDL text input (WM_CHAR for the game) and backspaces.
-
+    // The keyboard types into the game through SDL's input connection (commitText, backspace, enter): without one
+    // a keyboard opened on this view had nowhere to send its text (planet names did not change).
     @Override
     public boolean onCheckIsTextEditor() {
-        return typing;
+        return true;
     }
 
     @Override
-    public android.view.inputmethod.InputConnection onCreateInputConnection(android.view.inputmethod.EditorInfo out) {
-        if (!typing) return null;
-        // No suggestions: creature and planet names are made up, autocorrect would change them. Voice typing still works.
-        out.inputType = android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-                | android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS;
-        // No full-screen keyboard in landscape: the game stays visible above it.
+    public android.view.inputmethod.InputConnection onCreateInputConnection(
+            android.view.inputmethod.EditorInfo out) {
+        out.inputType = android.text.InputType.TYPE_CLASS_TEXT
+                | android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
         out.imeOptions = android.view.inputmethod.EditorInfo.IME_FLAG_NO_EXTRACT_UI
                 | android.view.inputmethod.EditorInfo.IME_FLAG_NO_FULLSCREEN
                 | android.view.inputmethod.EditorInfo.IME_ACTION_DONE;
-        return org.libsdl.app.SporeText.connection(this);
+        return org.libsdl.app.SporeText.connect(this);
     }
 
-    // Keys reach the focused view: once the keyboard button gave this view the focus, a physical keyboard's keys (and
-    // the keys the phone keyboard sends, like Enter and backspace on an empty text) come here instead of SDL's surface.
+    // Keys sent to this view (it has the focus while the on-screen keyboard is open): the keyboard sends backspace
+    // as a key event when there is nothing of its own to delete (a name the game filled in), and that never reached
+    // the game. Back stays the system's (SporeActivity: Esc).
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        return forwardKey(keyCode, event) || super.onKeyDown(keyCode, event);
+        if (!forwardsKey(keyCode)) return super.onKeyDown(keyCode, event);
+        SDLActivity.onNativeKeyDown(keyCode);
+        return true;
     }
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        return forwardKey(keyCode, event) || super.onKeyUp(keyCode, event);
+        if (!forwardsKey(keyCode)) return super.onKeyUp(keyCode, event);
+        SDLActivity.onNativeKeyUp(keyCode);
+        return true;
     }
 
-    private boolean forwardKey(int keyCode, KeyEvent event) {
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_BACK:  // the activity's back (the game's menu)
-            case KeyEvent.KEYCODE_VOLUME_UP:
-            case KeyEvent.KEYCODE_VOLUME_DOWN:
-            case KeyEvent.KEYCODE_VOLUME_MUTE:
-            case KeyEvent.KEYCODE_POWER:
-            case KeyEvent.KEYCODE_HOME:
-                return false;
-            default:
-                return SDLActivity.handleKeyEvent(this, keyCode, event, null);
-        }
+    private static boolean forwardsKey(int keyCode) {
+        return keyCode != KeyEvent.KEYCODE_BACK && keyCode != KeyEvent.KEYCODE_VOLUME_UP
+                && keyCode != KeyEvent.KEYCODE_VOLUME_DOWN && keyCode != KeyEvent.KEYCODE_VOLUME_MUTE
+                && keyCode != KeyEvent.KEYCODE_POWER && keyCode != KeyEvent.KEYCODE_HOME;
+    }
+
+    private void toggleKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm == null) return;
+        setFocusableInTouchMode(true);
+        requestFocus();
+        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
     }
 
     /** The pointer position a one-finger gesture acts at: the finger, or the touchpad cursor. */
@@ -766,7 +783,7 @@ public class SporeControls extends View {
     private void startLeft() {
         if (mode != Mode.PENDING) return;
         handler.removeCallbacks(longPress);
-        if (dragPansMap()) {
+        if (dragPansMap() && !holdDrag) {
             mode = Mode.PAN;
             return;
         }
@@ -792,6 +809,11 @@ public class SporeControls extends View {
     private void onLongPress() {
         if (mode != Mode.PENDING || moved) return;
         handler.removeCallbacks(leftDown);
+        if (dragPansMap()) {  // tribe, civilization: hold, then drag = left drag (a building from the palette)
+            holdDrag = true;
+            buzz(HapticFeedbackConstants.LONG_PRESS);
+            return;
+        }
         longPressFired = true;
         mode = Mode.NONE;
         buzz(HapticFeedbackConstants.LONG_PRESS);
@@ -812,6 +834,7 @@ public class SporeControls extends View {
         }
         if (action == MotionEvent.ACTION_DOWN) {
             longPressFired = false;
+            holdDrag = false;
             moved = false;
             if (panelOpen) {
                 mode = Mode.PANEL;
@@ -849,7 +872,7 @@ public class SporeControls extends View {
             if (mode == Mode.PENDING && !touchpad() && !dragTurnsCamera() && !dragPansMap() && !dragFlies())
                 handler.postDelayed(leftDown, LEFT_DELAY_MS * 3);
             if (mode == Mode.PENDING && !touchpad() && dragFlies()) {
-                handler.postDelayed(leftDown, 250);  // space: holding a finger still flies there too
+                handler.postDelayed(leftDown, 120);  // space: holding a finger still flies there too (the game waits 250 ms more)
             } else {
                 handler.postDelayed(longPress, LONG_PRESS_MS);
             }
@@ -922,7 +945,9 @@ public class SporeControls extends View {
             case MotionEvent.ACTION_CANCEL:
                 handler.removeCallbacks(longPress);
                 handler.removeCallbacks(leftDown);
-                if (!longPressFired && !moved && (mode == Mode.PENDING || mode == Mode.CURSOR)) {
+                if (holdDrag && !moved && mode == Mode.PENDING) {
+                    click(px(x), py(y), RIGHT);  // held without moving: the long press right click
+                } else if (!longPressFired && !moved && (mode == Mode.PENDING || mode == Mode.CURSOR)) {
                     int button = rightTaps ? RIGHT : LEFT;
                     click(px(x), py(y), button);
                     lastTapTime = System.currentTimeMillis();
@@ -1130,6 +1155,7 @@ public class SporeControls extends View {
                 62 * density * sc, ru() ? "Стик" : tx("Stick")});
         out.add(new Object[] {"jump", layX("jump", SporeStick.JUMP_X) * w, layY("jump", SporeStick.JUMP_Y) * h,
                 36 * density * sc, ru() ? "Прыжок" : tx("Jump")});
+        out.add(new Object[] {"fps", layX("fps", fpsDefX()) * w, layY("fps", fpsDefY()) * h, 24 * density, "FPS"});
         for (int i = 0; i < SLOT_IDS.length; ++i) {
             String label = i < actions.size() ? actions.get(i).label : String.valueOf(i + 1);
             out.add(new Object[] {SLOT_IDS[i], layX(SLOT_IDS[i], SLOT_DEFAULTS[i][0]) * w,
@@ -1346,8 +1372,10 @@ public class SporeControls extends View {
             fill.setColor(TEAL);
             c.drawRoundRect(b.rect, 12 * density, 12 * density, fill);
             fill.setStyle(Paint.Style.FILL);
-            fitText(b.label, size * 0.9f, 14 * density);
+            float labelSize = text.getTextSize();
+            fitText(b.label, b.rect.width() * 0.9f, labelSize);
             c.drawText(b.label, b.rect.centerX(), b.rect.centerY() + 5 * density, text);
+            text.setTextSize(labelSize);
             bx += toLeft ? -(size + gap) : size + gap;
         }
         drawActions(c, size, gap);
@@ -1362,11 +1390,16 @@ public class SporeControls extends View {
         if (sShowFps.value() == 1) {
             text.setTextSize(13 * density);
             text.setTextAlign(Paint.Align.LEFT);
-            c.drawText(String.format(Locale.ROOT, "%.0f fps", nativeFps()), x, getHeight() - 10 * density, text);
+            // its place is in the layout editor; by default bottom left inside the game's picture (not under the
+            // camera cutout with Screen 16:9 / Safe area), with a shadow so it reads over the game's light UI
+            text.setShadowLayer(3 * density, 0, 0, Color.BLACK);
+            c.drawText(String.format(Locale.ROOT, "%.0f fps", nativeFps()), layX("fps", fpsDefX()) * getWidth(),
+                    layY("fps", fpsDefY()) * getHeight(), text);
+            text.clearShadowLayer();
             text.setTextAlign(Paint.Align.CENTER);
         }
         if (hint != null && !panelOpen) {
-            fitText(hint, getWidth() - 72 * density, 15 * density);  // a long hint gets smaller to fit the screen
+            text.setTextSize(15 * density);
             float w = Math.min(getWidth() - 32 * density, text.measureText(hint) + 40 * density);
             float top = 12 * density, h = 40 * density;
             RectF hr = new RectF((getWidth() - w) / 2, top, (getWidth() + w) / 2, top + h);
@@ -1399,7 +1432,8 @@ public class SporeControls extends View {
             float y = layY(SLOT_IDS[i], SLOT_DEFAULTS[i][1]) * getHeight();
             b.rect.set(x - r, y - r, x + r, y + r);
             boolean on = ((b.label.equals(tx("Order")) || b.label.equals("Приказ")) && rightTaps)
-                    || ((b.label.equals(tx("Select")) || b.label.equals("Выбор")) && boxArmed);
+                    || ((b.label.equals(tx("Select")) || b.label.equals("Выбор")) && boxArmed)
+                    || ((b.label.equals(tx("LMB")) || b.label.equals("ЛКМ")) && holdLeft);
             fill.setStyle(Paint.Style.FILL);
             fill.setColor(alphaOf(on ? 0xd0ffb03a : 0x900a1a2a));
             c.drawOval(b.rect, fill);
@@ -1409,7 +1443,7 @@ public class SporeControls extends View {
             c.drawOval(b.rect, fill);
             fill.setStyle(Paint.Style.FILL);
             text.setColor(alphaOf(0xffffffff));
-            fitText(b.label, r * 1.7f, 16 * density * scale());  // longer words (Spanish) get smaller, not cut
+            fitText(b.label, b.rect.width() * 0.85f, text.getTextSize());  // longer words (Spanish) get smaller
             c.drawText(b.label, b.rect.centerX(), b.rect.centerY() + 6 * density * scale(), text);
         }
         text.setTextSize(14 * density);
@@ -1417,100 +1451,97 @@ public class SporeControls extends View {
     }
 
     private void drawPanel(Canvas c) {
-        float w = Math.min(getWidth() - 24 * density, 700 * density);
-        float row = 36 * density, rowGap = 6 * density, pad = 16 * density, header = 56 * density;
-        float section = 26 * density, footer = 62 * density;
+        // the whole panel shrinks to fit short screens (its bottom row was cut off at 720p-ish heights)
+        int rowsAll = Math.max(graphics.length, controlsSettings.length);
+        float units = 56 + 26 + rowsAll * (36 + 6) + 62 + 12;
+        float d = Math.min(density, getHeight() / units);
+        float w = Math.min(getWidth() - 24 * d, 700 * d);
+        float row = 36 * d, rowGap = 6 * d, pad = 16 * d, header = 56 * d;
+        float section = 26 * d, footer = 62 * d;
         int rows = Math.max(graphics.length, controlsSettings.length);
-        // rows a bit lower when the panel would not fit the screen's height (wide phones in landscape)
-        float avail = getHeight() - 12 * density - (header + section + footer);
-        if (rows * (row + rowGap) > avail && avail > 0) {
-            float k = avail / (rows * (row + rowGap));
-            row *= k;
-            rowGap *= k;
-        }
         float h = header + section + rows * (row + rowGap) + footer;
-        float left = (getWidth() - w) / 2, top = Math.max(6 * density, (getHeight() - h) / 2);
+        float left = (getWidth() - w) / 2, top = Math.max(6 * d, (getHeight() - h) / 2);
         panel.set(left, top, left + w, top + h);
         fill.setStyle(Paint.Style.FILL);
         fill.setColor(0xf20b1626);
-        c.drawRoundRect(panel, 20 * density, 20 * density, fill);
+        c.drawRoundRect(panel, 20 * d, 20 * d, fill);
         fill.setStyle(Paint.Style.STROKE);
-        fill.setStrokeWidth(1.5f * density);
+        fill.setStrokeWidth(1.5f * d);
         fill.setColor(0xff2a5a6a);
-        c.drawRoundRect(panel, 20 * density, 20 * density, fill);
+        c.drawRoundRect(panel, 20 * d, 20 * d, fill);
         fill.setStyle(Paint.Style.FILL);
         // header: title left, the credit under it, a close cross right
         text.setTextAlign(Paint.Align.LEFT);
         text.setColor(Color.WHITE);
-        text.setTextSize(19 * density);
-        c.drawText(ru() ? "Настройки" : tx("Settings"), left + pad, top + 30 * density, text);
-        text.setTextSize(11 * density);
+        text.setTextSize(19 * d);
+        c.drawText(ru() ? "Настройки" : tx("Settings"), left + pad, top + 30 * d, text);
+        text.setTextSize(11 * d);
         text.setColor(0xff8aa8b8);
         c.drawText(SetupActivity.CREDIT + (ru() ? "   ·   * — после перезапуска" : tx("   ·   * = after restart")),
-                left + pad, top + 47 * density, text);
-        float cs = 34 * density;
-        panelClose.set(left + w - pad - cs, top + 12 * density, left + w - pad, top + 12 * density + cs);
+                left + pad, top + 47 * d, text);
+        float cs = 34 * d;
+        panelClose.set(left + w - pad - cs, top + 12 * d, left + w - pad, top + 12 * d + cs);
         fill.setColor(0xff1a2c3c);
-        c.drawRoundRect(panelClose, 10 * density, 10 * density, fill);
+        c.drawRoundRect(panelClose, 10 * d, 10 * d, fill);
         text.setTextAlign(Paint.Align.CENTER);
         text.setColor(Color.WHITE);
-        text.setTextSize(18 * density);
-        c.drawText("×", panelClose.centerX(), panelClose.centerY() + 6 * density, text);
+        text.setTextSize(18 * d);
+        c.drawText("×", panelClose.centerX(), panelClose.centerY() + 6 * d, text);
         float colW = (w - pad * 3) / 2;
         String[] titles = {ru() ? "ГРАФИКА" : tx("GRAPHICS"), ru() ? "УПРАВЛЕНИЕ" : tx("CONTROLS")};
         Setting[][] cols = {graphics, controlsSettings};
         for (int col = 0; col < 2; ++col) {
             float cx = left + pad + col * (colW + pad), y = top + header;
             text.setTextAlign(Paint.Align.LEFT);
-            text.setTextSize(11 * density);
+            text.setTextSize(11 * d);
             text.setColor(TEAL);
-            c.drawText(titles[col], cx + 4 * density, y + 14 * density, text);
+            c.drawText(titles[col], cx + 4 * d, y + 14 * d, text);
             y += section;
             for (Setting s : cols[col]) {
                 int i = java.util.Arrays.asList(settings).indexOf(s);
                 RectF rect = settingRects[i];
                 rect.set(cx, y, cx + colW, y + row);
                 fill.setColor(0xff142638);
-                c.drawRoundRect(rect, 10 * density, 10 * density, fill);
+                c.drawRoundRect(rect, 10 * d, 10 * d, fill);
                 text.setTextAlign(Paint.Align.LEFT);
-                text.setTextSize(13 * density);
+                text.setTextSize(13 * d);
                 text.setColor(Color.WHITE);
-                c.drawText(s.label() + (s.engine ? " *" : ""), rect.left + 12 * density, rect.centerY() + 5 * density,
+                c.drawText(s.label() + (s.engine ? " *" : ""), rect.left + 12 * d, rect.centerY() + 5 * d,
                         text);
                 // ‹ value ›
                 float vz = rect.width() * 0.48f, vl = rect.right - vz, mid = rect.right - vz / 2;
                 text.setTextAlign(Paint.Align.CENTER);
                 text.setColor(0xff6a8a9a);
-                text.setTextSize(16 * density);
-                c.drawText("‹", vl + 12 * density, rect.centerY() + 6 * density, text);
-                c.drawText("›", rect.right - 12 * density, rect.centerY() + 6 * density, text);
+                text.setTextSize(16 * d);
+                c.drawText("‹", vl + 12 * d, rect.centerY() + 6 * d, text);
+                c.drawText("›", rect.right - 12 * d, rect.centerY() + 6 * d, text);
                 text.setColor(TEAL);
-                text.setTextSize(13 * density);
-                c.drawText(s.names[s.index], mid, rect.centerY() + 5 * density, text);
+                text.setTextSize(13 * d);
+                c.drawText(s.names[s.index], mid, rect.centerY() + 5 * d, text);
                 y += row + rowGap;
             }
         }
         // footer: layout editor, support, source code, close
-        float by = top + h - footer + 12 * density, bh = 38 * density, bw = (w - pad * 5) / 4;
+        float by = top + h - footer + 12 * d, bh = 38 * d, bw = (w - pad * 5) / 4;
         panelLayout.set(left + pad, by, left + pad + bw, by + bh);
         panelSupport.set(panelLayout.right + pad, by, panelLayout.right + pad + bw, by + bh);
         panelGitHub.set(panelSupport.right + pad, by, panelSupport.right + pad + bw, by + bh);
         RectF closeBig = new RectF(panelGitHub.right + pad, by, panelGitHub.right + pad + bw, by + bh);
         fill.setColor(0xff1d5a6a);
-        c.drawRoundRect(panelLayout, 10 * density, 10 * density, fill);
+        c.drawRoundRect(panelLayout, 10 * d, 10 * d, fill);
         fill.setColor(0xff7a3a6e);
-        c.drawRoundRect(panelSupport, 10 * density, 10 * density, fill);
+        c.drawRoundRect(panelSupport, 10 * d, 10 * d, fill);
         fill.setColor(0xff2d333b);
-        c.drawRoundRect(panelGitHub, 10 * density, 10 * density, fill);
+        c.drawRoundRect(panelGitHub, 10 * d, 10 * d, fill);
         fill.setColor(0xff22384a);
-        c.drawRoundRect(closeBig, 10 * density, 10 * density, fill);
+        c.drawRoundRect(closeBig, 10 * d, 10 * d, fill);
         text.setTextAlign(Paint.Align.CENTER);
         text.setColor(Color.WHITE);
-        text.setTextSize(14 * density);
-        c.drawText(ru() ? "Раскладка" : tx("Layout"), panelLayout.centerX(), panelLayout.centerY() + 5 * density, text);
-        c.drawText("Patreon", panelSupport.centerX(), panelSupport.centerY() + 5 * density, text);
-        c.drawText("GitHub", panelGitHub.centerX(), panelGitHub.centerY() + 5 * density, text);
-        c.drawText(ru() ? "Закрыть" : tx("Close"), closeBig.centerX(), closeBig.centerY() + 5 * density, text);
+        text.setTextSize(14 * d);
+        c.drawText(ru() ? "Раскладка" : tx("Layout"), panelLayout.centerX(), panelLayout.centerY() + 5 * d, text);
+        c.drawText("Patreon", panelSupport.centerX(), panelSupport.centerY() + 5 * d, text);
+        c.drawText("GitHub", panelGitHub.centerX(), panelGitHub.centerY() + 5 * d, text);
+        c.drawText(ru() ? "Закрыть" : tx("Close"), closeBig.centerX(), closeBig.centerY() + 5 * d, text);
         panelCloseBig.set(closeBig);
     }
 

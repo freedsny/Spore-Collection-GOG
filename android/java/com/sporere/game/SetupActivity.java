@@ -126,6 +126,18 @@ public class SetupActivity extends Activity {
         File found = null;
         if (app != null && find(app, EXE) != null) found = app;
         else if (hasSharedAccess() && find(shared, EXE) != null) found = shared;
+        else if (hasSharedAccess()) {
+            // the GOG folder copied whole into Spore/ (Spore/SPORE/Data/...): one level down counts too
+            File[] subs = shared.listFiles(File::isDirectory);
+            if (subs != null) {
+                for (File sub : subs) {
+                    if (find(sub, EXE) != null) {
+                        found = sub;
+                        break;
+                    }
+                }
+            }
+        }
         if (found == null) {
             showHelp(app, shared, null);
             return;
@@ -135,7 +147,7 @@ public class SetupActivity extends Activity {
             showHelp(app, shared, found.getAbsolutePath() + " is missing: " + String.join(", ", lack));
             return;
         }
-        launch(found == app ? null : shared);
+        launch(found == app ? null : found);
     }
 
     private void launch(File gameDir) {
@@ -145,7 +157,8 @@ public class SetupActivity extends Activity {
         } catch (ErrnoException ignored) {
             // the native side falls back to the app folder
         }
-        File driver = installCustomDriver();
+        copyLogs(gameDir);
+        File driver = installCustomDriver(gameDir);
         try {
             if (driver == null) Os.unsetenv("SPORERE_CUSTOM_DRIVER");
             else Os.setenv("SPORERE_CUSTOM_DRIVER", driver.getAbsolutePath(), true);
@@ -157,30 +170,87 @@ public class SetupActivity extends Activity {
     }
 
     /**
-     * A user-supplied Vulkan driver (an Adreno driver .so, e.g. a Turnip build made for emulators) in
-     * Android/data/com.sporere.game/files/driver/: copied into the app's private storage, where the linker may load
+     * A user-supplied Vulkan driver (an Adreno driver, e.g. a Turnip build made for emulators): a .so, or a .zip as
+     * Adreno Tools driver releases ship them, in Spore/driver/ next to the game files (or the older place,
+     * Android/data/com.sporere.game/files/driver/). Copied into the app's private storage, where the linker may load
      * it from (not from shared storage). Returns the private copy, or null when there is none (the copy is removed
      * when the user removes the driver).
      */
-    private File installCustomDriver() {
+    private File installCustomDriver(File gameDir) {
         File base = getExternalFilesDir(null);
-        File[] found = base == null ? null : new File(base, "driver").listFiles((d, name) -> name.endsWith(".so"));
+        File[] dirs = {gameDir == null ? null : new File(gameDir, "driver"), base == null ? null : new File(base, "driver")};
+        File src = null;
+        for (File dir : dirs) {
+            File[] found = dir == null ? null
+                    : dir.listFiles((d, name) -> name.endsWith(".so") || name.endsWith(".zip"));
+            if (found != null && found.length > 0) {
+                src = found[0];
+                break;
+            }
+        }
         File dest = new File(new File(getFilesDir(), "driver"), "libvulkan_custom.so");
-        if (found == null || found.length == 0) {
+        File stamp = new File(dest.getParentFile(), "source");
+        if (src == null) {
             dest.delete();
+            stamp.delete();
             return null;
         }
-        File src = found[0];
-        if (dest.exists() && dest.length() == src.length() && dest.lastModified() >= src.lastModified()) return dest;
+        String id = src.getAbsolutePath() + " " + src.length() + " " + src.lastModified();
+        if (dest.exists() && id.equals(readText(stamp))) return dest;
         dest.getParentFile().mkdirs();
-        try (InputStream in = new FileInputStream(src); OutputStream out = new FileOutputStream(dest)) {
+        try (InputStream raw = new FileInputStream(src); OutputStream out = new FileOutputStream(dest)) {
+            InputStream in = raw;
+            if (src.getName().endsWith(".zip")) {  // the first .so inside (Adreno Tools: the driver + meta.json)
+                java.util.zip.ZipInputStream zip = new java.util.zip.ZipInputStream(raw);
+                java.util.zip.ZipEntry e;
+                while ((e = zip.getNextEntry()) != null && !(e.getName().endsWith(".so") && !e.isDirectory())) {}
+                if (e == null) throw new IOException("no .so in " + src.getName());
+                in = zip;
+            }
             byte[] buf = new byte[1 << 16];
             for (int n; (n = in.read(buf)) > 0;) out.write(buf, 0, n);
         } catch (IOException e) {
             dest.delete();
             return null;
         }
+        try (OutputStream out = new FileOutputStream(stamp)) {
+            out.write(id.getBytes());
+        } catch (IOException ignored) {
+            // copied again next time
+        }
         return dest;
+    }
+
+    /**
+     * The last run's logs into Spore/logs/ next to the game files, where any file manager reaches them (the app's
+     * own folder under Android/data is closed to them on newer Android): for bug reports.
+     */
+    private void copyLogs(File gameDir) {
+        File base = getExternalFilesDir(null);
+        if (gameDir == null || base == null) return;
+        File out = new File(gameDir, "logs");
+        String[] names = {"spore-native.log", "spore-native.prev.log", "app_process64_d3d9.log"};
+        for (String name : names) {
+            File src = new File(base, name);
+            if (!src.isFile()) continue;
+            out.mkdirs();
+            try (InputStream in = new FileInputStream(src); OutputStream o = new FileOutputStream(new File(out, name))) {
+                byte[] buf = new byte[1 << 16];
+                for (int n; (n = in.read(buf)) > 0;) o.write(buf, 0, n);
+            } catch (IOException ignored) {
+                // a log is a nice-to-have
+            }
+        }
+    }
+
+    private static String readText(File f) {
+        try (InputStream in = new FileInputStream(f)) {
+            byte[] b = new byte[(int) Math.min(f.length(), 4096)];
+            int n = in.read(b);
+            return n > 0 ? new String(b, 0, n) : "";
+        } catch (IOException e) {
+            return "";
+        }
     }
 
     private void requestAccess() {

@@ -735,11 +735,15 @@ class FunctionCompiler:
     def jump_to(self, d):
         if self.inside(d):
             return f"goto L_{d:08x};"
+        # A jump out of the function continues the same x86 code elsewhere (a body Ghidra split in two, a shared
+        # tail): the flags may still be live there (cmp here, jcc there), and the target loads them from the
+        # context (RLOCALS), so the local copy goes back first. Calls and returns need no flags.
+        flags = "RFLAGS_OUT; " if LOCALIZE else ""
         if d in self.known:
             self.direct_calls.add(d)
-            return f"if (RecompDirect(0x{d:08x}u)) f_{d:08x}(c); else RecompDispatch(c, 0x{d:08x}u); return;"
+            return f"{flags}if (RecompDirect(0x{d:08x}u)) f_{d:08x}(c); else RecompDispatch(c, 0x{d:08x}u); return;"
         self.unknown_targets.add(d)
-        return f"RecompDispatch(c, 0x{d:08x}u); return;"
+        return f"{flags}RecompDispatch(c, 0x{d:08x}u); return;"
 
     # ---- instructions ----
     def emit(self, ins):

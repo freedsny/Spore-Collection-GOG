@@ -13,19 +13,14 @@ apoyarlo en Patreon: **[patreon.com/VinTeRuS](https://www.patreon.com/cw/VinTeRu
 
 ## Qué tiene de nuevo este fork
 
-- **Teclado del teléfono dentro del juego**: el botón ⌨ abre el teclado y lo que escribes llega al juego (nombres
-  de criaturas, planetas, la consola de trucos). Funcionan tildes, ñ, dictado por voz y la tecla de borrar. Sin
-  autocorrector, para que no cambie los nombres inventados. Un teclado físico también sigue funcionando.
-- **Tamaño de pantalla** (Ajustes ⚙ → Gráficos → *Tamaño de pantalla*): achica la imagen del juego de 100 % a 80 %,
-  de uno en uno, centrada y sin deformarla, para que nada quede debajo de las esquinas redondeadas o del agujero de la
-  cámara. El borde que queda es negro puro (en pantallas OLED se ve como el marco del teléfono). Se aplica al
-  reiniciar el juego.
-- **Botones + y − en los editores**: hacen lo de la rueda del ratón. Toca una pieza (o la columna) de la criatura y
-  usa + / − para agrandarla o achicarla.
-- **Ajustes y controles en español** cuando el teléfono está en español: panel de ajustes, botones, pistas de cada
-  etapa y la pantalla de archivos del juego. Las palabras largas se achican para caber en los botones.
+Está al día con **spore-re v0.1.5** (todo lo del original: teclado, pantalla sin bordes, botones de la rueda en el
+editor, botón de trucos, vuelo en el espacio, etc.), y además trae:
+
+- **Ajustes y controles en español** cuando el teléfono está en español: panel de ajustes, botones de cada etapa,
+  pistas, avisos y la pantalla de archivos del juego. Las palabras largas se achican para caber en los botones.
 - **Crédito más discreto**: el texto "Spore Android port by VinTeRuS" de la esquina es más pequeño y transparente.
 - **Nombre propio**: se instala como **Spore Collection GOG**, al lado de la app oficial, sin reemplazarla.
+- **APK compilado en GitHub**: cada cambio genera un APK nuevo en Releases, sin necesitar los archivos del juego.
 
 ## Descargar
 
@@ -44,8 +39,8 @@ Android 10 o superior, arm64 (teléfonos de 2019 en adelante, aproximadamente).
 2. Instala el APK, ábrelo y permite el "Acceso a todos los archivos".
 3. El juego usa el idioma del teléfono; puedes elegir otro en Ajustes (botón redondo → engranaje) → Idioma.
 
-Las partidas guardadas y los ajustes de esta app van en `Android/data/com.sporere.game.freed/files`, aparte de los
-de la app oficial.
+Las partidas guardadas van en `Spore/UserData`, junto a los archivos del juego: esta app y la oficial usan las mismas.
+En cada inicio, los registros de la partida anterior se copian a `Spore/logs` (útiles para reportar errores).
 
 ## Versión del juego
 
@@ -54,24 +49,26 @@ funcionan.
 
 ## Estado
 
-- Funcionan todas las etapas (célula, criatura, tribu, civilización, espacio), los editores, las partidas guardadas
-  y el sonido.
-- Los controles táctiles cambian según la etapa (con una pista corta): tocar = clic, mantener = clic derecho, un dedo
-  gira la cámara (criatura, espacio) o mueve el mapa (tribu, civilización), dos dedos giran, pellizcar hace zoom, y en
-  la etapa de criatura hay un joystick y botones de habilidades. Todos los botones se pueden mover
+- Funcionan todas las etapas (célula, criatura, tribu, civilización, espacio), los editores, las partidas guardadas,
+  el sonido y Aventuras Galácticas.
+- Controles táctiles según la etapa (con una pista corta): tocar = clic, mantener = clic derecho, un dedo gira la
+  cámara o mueve el mapa, dos dedos giran, pellizcar hace zoom. Joystick en criatura y espacio, botones de
+  habilidades, botón **Clic** en el espacio (mantener una herramienta: rayos, abducción, terraformar), botón
+  **Trucos** en el menú para la consola de trucos (se escribe con ⌨). Todos los botones se pueden mover
   (Ajustes → Mover botones).
-- Los editores tienen Deshacer, Rehacer y + / − para el tamaño de las piezas.
-- Ajustes: resolución, nitidez, límite de FPS 30-120, calidad, tamaño de pantalla, tamaño y opacidad de los botones.
-- Problemas conocidos: todavía no aparece Aventuras Espaciales en el menú principal, las excepciones de C++ del juego
-  no se manejan (algunos perfiles con mods se cierran), y "Salir" en el menú de pausa cierra la app (es la salida
-  normal del juego).
+- Editores: Deshacer, Rehacer y ▲ / ▼ para el tamaño de las piezas (toca una pieza y luego ▲ / ▼).
+- Ajustes: calidad, resolución, **Pantalla** (Completa / 16:9 / Sin bordes, con barras negras; Sin bordes evita las
+  esquinas redondeadas y la cámara), nitidez, límite de FPS 30-120, tamaño y opacidad de los botones, idioma.
+- Driver de Vulkan propio: pon un `.so` o un `.zip` de Adreno Tools en `Spore/driver/`.
+- Problemas conocidos: las excepciones de C++ del juego no se manejan (algunos perfiles con mods se cierran), y
+  "Salir" en el menú de pausa cierra la app (es la salida normal del juego).
 
 ## Cómo se compila el APK de este fork
 
 Cada cambio que se sube a `android/` hace que GitHub Actions compile los APK solo (`.github/workflows/fork-apk.yml`)
 y los publique en Releases. No necesita los archivos del juego: toma el código Java de este repositorio y las
 librerías nativas del último release oficial de VinTeRuS (`android/build-fork-apk.sh`). Por eso, por ahora, las
-mejoras de este fork son solo en la parte Java (controles, teclado, ajustes, pantalla).
+mejoras de este fork son solo en la parte Java (controles, ajustes, textos).
 
 Para cambiar la parte nativa (el motor) hace falta la compilación completa del port original, con el juego
 instalado y el Android NDK: ver [README en inglés](README.en.md#building-rough).

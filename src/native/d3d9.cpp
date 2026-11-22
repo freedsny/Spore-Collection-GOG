@@ -1064,19 +1064,25 @@ M(IDirect3D9, GetAdapterIdentifier) {
             default: {
                 // The card the game sees picks its graphics settings. Setting gpu_tier (the settings panel's "Game
                 // graphics"): 0 = Radeon X1300 (low, default: phones), 1 = Radeon HD 2600 (medium), 2 = Radeon HD 4850 (high).
-                static const struct { uint32_t device; const char* name; } kTiers[] = {
+                struct Card { uint32_t device; const char* name; };
+                static const Card kTiers[] = {
                     {0x7142, "ATI Radeon X1300"}, {0x9588, "ATI Radeon HD 2600"}, {0x9442, "ATI Radeon HD 4850"}};
+                // ARM Mali gets the NVIDIA cards of the same tiers: on Mali-G720 the game's ATI shadow path left the
+                // ground and shadows far too dark, the NVIDIA one renders right (issue #13)
+                static const Card kNvTiers[] = {
+                    {0x01df, "NVIDIA GeForce 7300 GS"}, {0x0402, "NVIDIA GeForce 8600 GT"}, {0x0611, "NVIDIA GeForce 8800 GT"}};
+                const bool nv = id->VendorId == 0x13b5;
                 int tier = SettingInt("gpu_tier", 0);
                 if (tier < 0 || tier > 2) tier = 1;
                 static bool logged = false;
                 if (!logged) {
                     logged = true;
                     Log("d3d9: adapter \"%s\" (vendor %04x) is unknown to the game; reported as %s",
-                        id->Description, unsigned(id->VendorId), kTiers[tier].name);
+                        id->Description, unsigned(id->VendorId), (nv ? kNvTiers : kTiers)[tier].name);
                 }
-                id->VendorId = 0x1002;
-                id->DeviceId = kTiers[tier].device;
-                snprintf(id->Description, sizeof id->Description, "%s", kTiers[tier].name);
+                id->VendorId = nv ? 0x10de : 0x1002;
+                id->DeviceId = (nv ? kNvTiers : kTiers)[tier].device;
+                snprintf(id->Description, sizeof id->Description, "%s", (nv ? kNvTiers : kTiers)[tier].name);
             }
         }
     }
@@ -1123,12 +1129,15 @@ M(IDirect3DQuery9, GetData) {
 std::atomic<uint32_t> g_game_mode{0};
 void UpdateGameMode() {
     constexpr uint32_t kGameModeManager = 0x015fd8b0;  // App::IGameModeManager::Get() reads this global
+    // the manager and its mode vector are heap objects: anything outside the guest heap arena (memory.cpp) is a
+    // stale or half-built manager (a read at 0x275d0 crashed a phone), so it counts as no mode
+    auto heap = [](uint32_t a) { return a >= 0x02000000u && a < 0x7fff0000u; };
     uint32_t mode = 0, mgr = R32(kGameModeManager);
-    if (mgr >= 0x10000 && mgr < 0xfff00000u) {
+    if (heap(mgr)) {
         int32_t idx = int32_t(R32(mgr + 0x28));
         uint32_t begin = R32(mgr + 0x14), end = R32(mgr + 0x18);
         uint32_t count = end >= begin ? (end - begin) / 24 : 0;
-        if (begin >= 0x10000 && count <= 64 && idx >= 0 && uint32_t(idx) < count) mode = R32(begin + 24 * uint32_t(idx) + 4);
+        if (heap(begin) && count <= 64 && idx >= 0 && uint32_t(idx) < count) mode = R32(begin + 24 * uint32_t(idx) + 4);
     }
     if (mode != g_game_mode.exchange(mode, std::memory_order_relaxed)) Log("game mode: %08x", mode);
 }

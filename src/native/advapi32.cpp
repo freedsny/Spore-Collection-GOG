@@ -88,6 +88,10 @@ void Seed() {
     // What the GOG installer writes (32-bit view), with the game root at kGuestGameDir. The language: the setting
     // (sporere.ini `locale = en-us`, the settings panel), else the phone's language when the game has it.
     static const std::string locale = PickLocale();
+    // the parent key too: the game opens it and enumerates the subkeys to find the installed packs (without it
+    // Galactic Adventures counted as not installed: base Data/Config instead of DataEP1's, no GA menu item, and
+    // reading back the GA keys in Preferences.prop threw "unknown property")
+    g_keys["hklm\\software\\electronic arts"];
     auto& k = g_keys["hklm\\software\\electronic arts\\spore"];
     k["appdir"] = sz("Spore");
     k["datadir"] = sz("C:\\Game\\Data");
@@ -246,7 +250,39 @@ A(RegQueryValueExW) {
     if (size_out) W32(size_out, need);
     Return(c, 0, 6);
 }
-A(RegEnumKeyExW) { Return(c, 259, 8); }  // ERROR_NO_MORE_ITEMS
+// (hKey, index, name, *cchName, reserved, class, *cchClass, lastWrite): the direct subkeys, in the case the GOG
+// installer writes them.
+A(RegEnumKeyExW) {
+    std::string path = RootName(Arg(c, 0)) + "\\";
+    uint32_t index = Arg(c, 1), name = Arg(c, 2), cch = Arg(c, 3);
+    std::vector<std::string> subs;
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        for (const auto& kv : g_keys) {
+            if (kv.first.size() > path.size() && kv.first.compare(0, path.size(), path) == 0 &&
+                kv.first.find('\\', path.size()) == std::string::npos)
+                subs.push_back(kv.first.substr(path.size()));
+        }
+    }
+    if (index >= subs.size() || path.size() == 1) {
+        Return(c, 259, 8);  // ERROR_NO_MORE_ITEMS
+        return;
+    }
+    std::string sub = subs[index];
+    if (sub == "spore_ep1") sub = "spore_EP1";
+    else if (sub == "spore creepy and cute parts pack") sub = "spore Creepy and Cute Parts Pack";
+    uint32_t room = cch ? R32(cch) : 0;
+    if (!name || room < sub.size() + 1) {
+        if (cch) W32(cch, uint32_t(sub.size()) + 1);
+        Return(c, 234, 8);  // ERROR_MORE_DATA
+        return;
+    }
+    uint32_t n = PutWideString(name, room, sub);
+    W32(cch, n);
+    if (Arg(c, 6)) W32(Arg(c, 6), 0);
+    if (Arg(c, 7)) W32(Arg(c, 7), 0), W32(Arg(c, 7) + 4, 0);
+    Return(c, 0, 8);
+}
 void PutUserName(uint32_t buf, uint32_t size_ptr, bool wide) {
     const char* name = "Player";
     uint32_t cap = R32(size_ptr), need = uint32_t(strlen(name)) + 1;
