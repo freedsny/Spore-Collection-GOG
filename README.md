@@ -18,6 +18,8 @@ editor, botón de trucos, vuelo en el espacio, etc.), y además trae:
 
 - **Ajustes y controles en español** cuando el teléfono está en español: panel de ajustes, botones de cada etapa,
   pistas, avisos y la pantalla de archivos del juego. Las palabras largas se achican para caber en los botones.
+- **Botón Info en los editores**: para leer la información de cada pieza sin agarrarla (en el PC sale al pasar
+  el ratón por encima).
 - **Crédito más discreto**: el texto "Spore Android port by VinTeRuS" de la esquina es más pequeño y transparente.
 - **Nombre propio**: se instala como **Spore Collection GOG**, al lado de la app oficial, sin reemplazarla.
 - **APK compilado en GitHub**: cada cambio genera un APK nuevo en Releases, sin necesitar los archivos del juego.
@@ -57,6 +59,9 @@ funcionan.
   **Trucos** en el menú para la consola de trucos (se escribe con ⌨). Todos los botones se pueden mover
   (Ajustes → Mover botones).
 - Editores: Deshacer, Rehacer y ▲ / ▼ para el tamaño de las piezas (toca una pieza y luego ▲ / ▼).
+- Editores: botón **Info** (de este fork). Con Info encendido, tocar o arrastrar el dedo solo mueve el cursor, sin
+  hacer clic: sale el cuadro con la información de la pieza y se queda en pantalla para leerlo. Tócalo otra vez para
+  volver a colocar piezas.
 - Ajustes: calidad, resolución, **Pantalla** (Completa / 16:9 / Sin bordes, con barras negras; Sin bordes evita las
   esquinas redondeadas y la cámara), nitidez, límite de FPS 30-120, tamaño y opacidad de los botones, idioma.
 - Driver de Vulkan propio: pon un `.so` o un `.zip` de Adreno Tools en `Spore/driver/`.

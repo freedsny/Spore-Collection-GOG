@@ -135,6 +135,7 @@ public class SporeControls extends View {
         ES.put("Select", "Elegir");
         ES.put("LMB", "Clic");
         ES.put("Undo", "Deshacer");
+        ES.put("Info", "Info");
         ES.put("Redo", "Rehacer");
         ES.put("Stages", "Etapas");
         ES.put("Cheats", "Trucos");
@@ -155,7 +156,7 @@ public class SporeControls extends View {
         ES.put("Creature: tap to walk / act, drag to turn the camera, stick to walk, 1-4 abilities", "Criatura: toca para caminar / actuar, arrastra para girar la cámara, joystick para caminar, 1-4 habilidades");
         ES.put("Tap to select, hold to order, drag to move the map, two fingers turn, Select for a box", "Toca para elegir, mantén para dar órdenes, arrastra para mover el mapa, dos dedos giran, Elegir para un recuadro");
         ES.put("Space: stick flies, hold a finger to fly there, LMB to hold a tool, two fingers turn, +/- altitude", "Espacio: el joystick vuela, mantén un dedo para volar hacia allí, Clic para usar una herramienta, dos dedos giran, +/- altura");
-        ES.put("Editor: drag parts, two fingers turn the camera, pinch to zoom, tap a part and \u25b2/\u25bc to resize it", "Editor: arrastra las piezas, dos dedos giran la cámara, pellizca para zoom; toca una pieza y usa \u25b2/\u25bc para cambiar su tamaño");
+        ES.put("Editor: drag parts, two fingers turn the camera, pinch to zoom, tap a part and \u25b2/\u25bc to resize it, Info to read parts", "Editor: arrastra las piezas, dos dedos giran la cámara, pellizca para zoom; toca una pieza y usa \u25b2/\u25bc para cambiar su tamaño; Info para leer las piezas");
         ES.put("Game files not found", "No se encontraron los archivos del juego");
         ES.put("Some game files are missing", "Faltan algunos archivos del juego");
         ES.put("Copy these folders from your SPORE folder on the PC (GOG version, with Galactic Adventures): SporebinEP1, Data, DataEP1 and bp1content (about 6 GB), to one of these places:", "Copia estas carpetas de tu carpeta de SPORE en el PC (versión GOG, con Aventuras Galácticas): SporebinEP1, Data, DataEP1 y bp1content (unos 6 GB), a uno de estos lugares:");
@@ -330,6 +331,8 @@ public class SporeControls extends View {
     private final List<Button> actions = new ArrayList<>();
     private boolean rightTaps;  // Order button: one-finger taps are right clicks (orders to the selected units)
     private boolean boxArmed;   // Select button: the next one-finger drag is a left drag (box selection)
+    private boolean hoverOnly;  // editors, Info button: a finger only moves the cursor (no clicks), so the game shows
+                                // the tooltip of the part under it and it stays there after the finger is lifted
     private boolean holdLeft;   // space, LMB button: holding a finger holds the left button (beams, abduction,
                                 // terraforming tools) instead of flying
     private String hint;        // what the gestures do in this stage, shown for a few seconds after it starts
@@ -398,8 +401,8 @@ public class SporeControls extends View {
                 return ru ? "Космос: стик — полёт, держи палец — лететь туда, ЛКМ — держать инструмент, два пальца — камера, +/− — высота"
                           : tx("Space: stick flies, hold a finger to fly there, LMB to hold a tool, two fingers turn, +/- altitude");
             case EDITOR:
-                return ru ? "Редактор: тяни детали пальцем, два пальца — камера, щипок — зум, коснись детали и \u25b2/\u25bc — размер"
-                          : tx("Editor: drag parts, two fingers turn the camera, pinch to zoom, tap a part and \u25b2/\u25bc to resize it");
+                return ru ? "Редактор: тяни детали пальцем, два пальца — камера, щипок — зум, коснись детали и \u25b2/\u25bc — размер, «Инфо» — описание деталей"
+                          : tx("Editor: drag parts, two fingers turn the camera, pinch to zoom, tap a part and \u25b2/\u25bc to resize it, Info to read parts");
             default:
                 return null;
         }
@@ -439,6 +442,7 @@ public class SporeControls extends View {
         rightTaps = false;
         boxArmed = false;
         holdLeft = false;
+        hoverOnly = false;
         actions.clear();
         hint = hintFor(s);
         handler.removeCallbacks(hideHint);
@@ -464,6 +468,8 @@ public class SporeControls extends View {
                 // the mouse wheel over a part resizes it: tap the part (the cursor stays there), then these
                 actions.add(new Button("\u25b2", () -> wheel(1)));
                 actions.add(new Button("\u25bc", () -> wheel(-1)));
+                // after the others, so the slots Undo / Redo / ▲ / ▼ were moved to keep their places
+                actions.add(new Button(ru() ? "Инфо" : tx("Info"), this::toggleHoverOnly));
                 break;
             default:
                 break;
@@ -499,6 +505,11 @@ public class SporeControls extends View {
         invalidate();
     }
 
+    private void toggleHoverOnly() {
+        hoverOnly = !hoverOnly;
+        invalidate();
+    }
+
     private void toggleHoldLeft() {
         holdLeft = !holdLeft;
         invalidate();
@@ -515,7 +526,7 @@ public class SporeControls extends View {
     }
 
     // ---- gesture state ----
-    private enum Mode { NONE, PENDING, LEFT_DRAG, CAM_DRAG, PAN, FLY, CURSOR, TWO_FINGER, BUTTON, PANEL, HANDLE, EDIT }
+    private enum Mode { NONE, HOVER, PENDING, LEFT_DRAG, CAM_DRAG, PAN, FLY, CURSOR, TWO_FINGER, BUTTON, PANEL, HANDLE, EDIT }
     private Mode mode = Mode.NONE;
     private float downX, downY, lastX, lastY, lastMidX, lastMidY, lastSpan, wheelAccum;
     private float camX, camY;            // virtual pointer while rotating the camera (moves at the camera speed)
@@ -856,6 +867,11 @@ public class SporeControls extends View {
             }
             downX = lastX = x;
             downY = lastY = y;
+            if (hoverOnly && stage == Stage.EDITOR) {  // Info: the cursor follows the finger, nothing is pressed
+                mode = Mode.HOVER;
+                mouse(0, MOVE, x, y);
+                return true;
+            }
             long now = System.currentTimeMillis();
             boolean doubleTap = touchpad() && now - lastTapTime < DOUBLE_TAP_MS;
             if (doubleTap) {  // touchpad: double tap and hold = drag with the left button
@@ -962,7 +978,7 @@ public class SporeControls extends View {
                 } else if (mode == Mode.FLY) {
                     mouse(0, UP, x, y);
                 }
-                if (!touchpad()) parkIfAtEdge(x, y);
+                if (!touchpad() && mode != Mode.HOVER) parkIfAtEdge(x, y);
                 mode = Mode.NONE;
                 invalidate();
                 return true;
@@ -989,6 +1005,11 @@ public class SporeControls extends View {
             handler.removeCallbacks(longPress);
         }
         switch (mode) {
+            case HOVER:
+                lastX = x;
+                lastY = y;
+                mouse(0, MOVE, x, y);
+                return;
             case TWO_FINGER: {
                 if (e.getPointerCount() < 2) return;
                 float mx = (e.getX(0) + e.getX(1)) / 2, my = (e.getY(0) + e.getY(1)) / 2;
@@ -1433,7 +1454,8 @@ public class SporeControls extends View {
             b.rect.set(x - r, y - r, x + r, y + r);
             boolean on = ((b.label.equals(tx("Order")) || b.label.equals("Приказ")) && rightTaps)
                     || ((b.label.equals(tx("Select")) || b.label.equals("Выбор")) && boxArmed)
-                    || ((b.label.equals(tx("LMB")) || b.label.equals("ЛКМ")) && holdLeft);
+                    || ((b.label.equals(tx("LMB")) || b.label.equals("ЛКМ")) && holdLeft)
+                    || ((b.label.equals(tx("Info")) || b.label.equals("Инфо")) && hoverOnly);
             fill.setStyle(Paint.Style.FILL);
             fill.setColor(alphaOf(on ? 0xd0ffb03a : 0x900a1a2a));
             c.drawOval(b.rect, fill);
